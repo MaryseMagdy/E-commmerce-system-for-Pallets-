@@ -3,7 +3,7 @@ import { UserAuthSchema } from '../schemas/users.schema';
 
 export const userAuthprovider = [
   {
-    provide: 'USER_AUTH_MODEL',
+    provide: 'userAuth_MODEL',
     useFactory: (connection: Connection) => connection.model('User', UserAuthSchema),
     inject: ['DATABASE_CONNECTION'],
   },
