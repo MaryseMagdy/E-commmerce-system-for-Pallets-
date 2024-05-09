@@ -9,20 +9,22 @@ import { databaseProviders } from './database/database.provider';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { JwtService
   
+ } from '@nestjs/jwt';
 @Module({
   imports: [
     ClientsModule.register([
       {
-        name:'ORDER_SERVICE',
+        name:'USER_AUTH_SERVICE',
         transport:Transport.KAFKA,
         options:{
           client:{
-            clientId:'order',
+            clientId:'user-auth',
             brokers:['localhost:9092']
           },
           consumer:{
-            groupId:'order-consumer',
+            groupId:'user-auth-consumer',
           }
         }
       }
@@ -45,4 +47,4 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
   ],
   exports: [...databaseProviders],
 })
-export class userAuthModule {}
+export class userAuthModule {}

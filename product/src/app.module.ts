@@ -1,43 +1,41 @@
-// app.module.ts
 import { Module } from '@nestjs/common';
-import { productService } from './app.service';
+import { productService } from './app.service'; // Corrected import
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { MongooseModule } from '@nestjs/mongoose';
-import{ProductSchema} from './schemas/product.schema';
-import{productController} from './app.controller';
+import { ProductSchema } from './schemas/product.schema';
+import { productController } from './app.controller'; // Corrected import
 import { productProvider } from './database/products';
-import { JwtService } from '@nestjs/jwt';
+import { JwtModule } from '@nestjs/jwt'; // Removed JwtService
 import { databaseProviders } from './database/database.providers';
+
 @Module({
   imports: [
     ClientsModule.register([
       {
-        name:'userAuth_SERVICE',
+        name:'USER_AUTH_SERVICE',
         transport:Transport.KAFKA,
         options:{
           client:{
-            clientId:'auth',
+            clientId:'user-auth',
             brokers:['localhost:9092']
           },
           consumer:{
-            groupId:'auth-consumer',
+            groupId:'user-auth-consumer',
           }
         }
       }
-    ],
-  ),
+    ]),
     MongooseModule.forFeature([
       { name: 'product', schema: ProductSchema },
     ]),
-    
-    MongooseModule.forRoot('mongodb://127.0.0.1:27017/SE-Project2'), 
-   ],
-  controllers: [productController],
+    MongooseModule.forRoot('mongodb://127.0.0.1:27017/SE-Project2'),
+    JwtModule.register({}), // Register JwtModule for configuration
+  ],
+  controllers: [productController], // Corrected controller name
   providers: [
-    JwtService,
+    productService, // Corrected service name
     ...databaseProviders,
-    productService,
     ...productProvider,
   ],
 })
-export class productModule {}
+export class ProductModule {} // Corrected module name
