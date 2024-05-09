@@ -9,4 +9,5 @@ export interface userAuth extends Document {
     company?: string;
     address?: string;
     wishlist: string[];
+    resetPasswordToken: string;
 }

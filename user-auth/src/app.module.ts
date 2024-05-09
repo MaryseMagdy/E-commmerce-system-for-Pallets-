@@ -10,7 +10,8 @@ import { databaseProviders } from './database/database.provider';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-  
+import { EmailService } from './email.service';
+
 @Module({
   imports: [
     ClientsModule.register([
@@ -58,7 +59,8 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
     ...databaseProviders,
     LocalStrategy,
     JwtStrategy,
+    EmailService,
   ],
-  exports: [...databaseProviders],
+  exports: [...databaseProviders,EmailService],
 })
 export class userAuthModule {}

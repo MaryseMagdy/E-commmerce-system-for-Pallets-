@@ -6,7 +6,8 @@ import { LoginDto } from './dto/login.dto';
 import{ userInfoDTO } from './dto/userInfo.dto';
 import { JwtService } from '@nestjs/jwt';
 import { TokenDto } from './dto/token.dto';
-// import { EmailService } from './email.service';
+import { EmailService } from './email.service';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class userAuthService {
@@ -17,7 +18,7 @@ export class userAuthService {
         @Inject('userAuth_MODEL')
         private userAuthModel: Model<userAuth>,        
         private jwtService:JwtService,
-        // private emailService: EmailService
+        private emailService: EmailService
     // ) {this.emailService = emailService;}
     ){}
     async register(UserDTO:UserDTO){
@@ -44,7 +45,6 @@ export class userAuthService {
             ...userData
         }
     }
-
     async getUserbyUsername(username:string){
         let loginResult =await this.userAuthModel.findOne({
             username:username,
@@ -67,24 +67,17 @@ export class userAuthService {
             if (!user || !user._id || !user.email || !user.username || !user.password) {
                 throw new Error("Invalid user data");
             }
-    
-            // Here, you can store the user ID in the token payload
-            let payload = {
+                let payload = {
                 id: user._id,
                 email: user.email,
                 username: user.username
-                // You can exclude password from the payload for security reasons
             };
-    
-            // Sign the token with the payload
             var token = this.jwtService.sign(payload);
             var tokenDecoded: any = this.jwtService.decode(token);
-    
-            // Return the token along with its expiration time
             return {
                 access_token: token,
                 expires_in: tokenDecoded.exp,
-                user_id: user._id // Include user ID in the response
+                user_id: user._id 
             };
         } catch (error) {
             return {
@@ -93,13 +86,10 @@ export class userAuthService {
             };
         }
     }
-    
-    
     validateToken(jwt:string){
         const validatedToken = this.jwtService.sign(jwt);
         return validatedToken;
     }
-    
     async getUserinfo(id: string) {
         let userInfo = await this.userAuthModel.findById(id);
     
@@ -138,7 +128,6 @@ export class userAuthService {
             return { success: false, message: error.message };
         }
     }
-    
     async editUserInfo(id: string, userInfoDTO:userInfoDTO) {
         try {
             const user = await this.userAuthModel.findById(id);
@@ -174,7 +163,58 @@ export class userAuthService {
             return { success: false, message: error.message };
         }
     };
+    async forgetPassword(email: string) {
+        try {
+            // Find the user by email
+            const user = await this.userAuthModel.findOne({ email });
+            
+            // If user not found, throw error
+            if (!user) {
+                throw new Error("User not found");
+            }
 
+            // Generate reset password token
+            const resetPasswordToken = this.generateSecureToken();
+
+            // Save the reset password token in the user document
+            user.resetPasswordToken = resetPasswordToken;
+            await user.save();
+
+            // Send reset password email with the same token
+            await this.emailService.sendResetPasswordEmail(email, resetPasswordToken);
+
+            return { success: true, message: "Reset password email sent successfully" };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    }
+
+    async forgetPasswordT(resetPasswordToken: string, newPassword: string) {
+        try {
+            // Verify token and get user
+            const user = await this.verifyTokenAndGetUser(resetPasswordToken);
+
+            // If user not found or token is invalid, throw error
+            if (!user) {
+                throw new Error("Invalid or expired token");
+            }
+
+            // Update user's password
+            user.password = newPassword;
+            await user.save();
+
+            return { success: true, message: "Password reset successfully" };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    }
+
+    private async verifyTokenAndGetUser(resetPasswordToken: string) {
+        // Find user by resetPasswordToken
+        return await this.userAuthModel.findOne({ resetPasswordToken });
+    }
+
+    private generateSecureToken(): string {
+        return crypto.randomBytes(20).toString('hex');
+    }
 }
-export { };
-

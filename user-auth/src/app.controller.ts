@@ -14,7 +14,7 @@ export class userAuthController {
   async register(@Body() UserDTO:UserDTO){
     return this.userAuthService.register(UserDTO);
   }
-  @Get('/login')
+  @Post('/login')
   async login(@Body() loginDto){
     return this.userAuthService.validateUser(loginDto);
   }
@@ -28,16 +28,25 @@ export class userAuthController {
       return this.userAuthService.changePassword(userId, newPassword);
   }
   @Put('/editUserInfo/:id')
-async editUserInfo(
+    async editUserInfo(
     @Param('id') userId: string, 
     @Body() userInfoDTO: userInfoDTO
-) {
+    ) {
     try {
         const result = await this.userAuthService.editUserInfo(userId, userInfoDTO);
         return { success: true, message: result };
     } catch (error) {
         return { success: false, message: error.message };
     }
-}
+    } 
+  @Post('/forget-password')
+    async forgetPassword(@Body('email') email: string) {
+        return await this.userAuthService.forgetPassword(email);
+    }
+    @Post('/forget-password/:token')
+    async forgetPasswordT(@Param('token') resetPasswordToken: string, @Body('password') password: string) {
+        return await this.userAuthService.forgetPasswordT(resetPasswordToken, password);
+    }
+
   }
   

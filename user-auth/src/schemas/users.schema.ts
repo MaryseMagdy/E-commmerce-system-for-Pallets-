@@ -37,6 +37,11 @@ const userAuthSchema: Schema = new Schema({
   wishlist: {
     type: [String],
     required: false
+  },
+  resetPasswordToken:{
+    type: String,
+    default: null 
+  
   }
 });
 

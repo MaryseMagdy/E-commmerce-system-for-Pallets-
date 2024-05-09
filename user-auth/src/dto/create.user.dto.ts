@@ -10,6 +10,7 @@ export class UserDTO {
     readonly company?: string;
     readonly address?: string;
     readonly wishlist: string[];
+    resetPasswordToken: string | null = null; // Initialize resetPasswordToken to null by default
     toString(){
         return JSON.stringify({
             firstName:this.firstName,
@@ -20,7 +21,8 @@ export class UserDTO {
             phoneNum:this.phoneNum,
             company:this.company,
             address:this.address,
-            wishlist:this.wishlist
+            wishlist:this.wishlist,
+            resetPasswordToken:this.resetPasswordToken
         }
         );
     }
