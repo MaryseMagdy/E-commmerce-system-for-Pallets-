@@ -3,8 +3,11 @@ import { Model } from 'mongoose';
 import { userAuth } from './interfaces/userAuth';
 import { UserDTO } from './dto/create.user.dto';
 import { LoginDto } from './dto/login.dto';
+import { AddToCartDto } from './dto/addToCart.dto';
 import{ userInfoDTO } from './dto/userInfo.dto';
 import { JwtService } from '@nestjs/jwt';
+//import {carts} from '.../carts/interfaces/carts';
+
 import { TokenDto } from './dto/token.dto';
 // import { EmailService } from './email.service';
 
@@ -17,6 +20,10 @@ export class userAuthService {
         @Inject('userAuth_MODEL')
         private userAuthModel: Model<userAuth>,        
         private jwtService:JwtService,
+      //  @Inject('carts_Model')
+       // private cartsModel: Model<carts>,
+        
+        
         // private emailService: EmailService
     // ) {this.emailService = emailService;}
     ){}
@@ -159,6 +166,25 @@ export class userAuthService {
             return { success: false, message: error.message };
         }
     };
+
+    // async addToCart(AddToCartDto:AddToCartDto): Promise <any> {
+    //     try {
+          
+    //       const newCartItem = new this.CartModel(this.addToCart)({
+    //         userId,
+    //         productId,
+    //         price,
+    //         quantity,
+    //       });
+    //       const result = await cartItem.save();
+    //       return result;
+    //     } catch (error) {
+    //       // Handle any errors that occur during the operation
+    //       throw new Error('Failed to add item to cart');
+    //     }
+    //   };
+
+  
 
 }
 export { };
