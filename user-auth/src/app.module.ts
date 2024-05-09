@@ -28,6 +28,21 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         }
       },
     ]),
+    ClientsModule.register([
+      {
+        name:'PRODUCT_SERVICE',
+        transport:Transport.KAFKA,
+        options:{
+          client:{
+            clientId:'product',
+            brokers:['localhost:9092']
+          },
+          consumer:{
+            groupId:'product-consumer',
+          }
+        }
+      },
+    ]),
     MongooseModule.forFeature([
       { name: 'users', schema: UserAuthSchema },
     ]),

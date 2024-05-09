@@ -68,19 +68,23 @@ export class userAuthService {
                 throw new Error("Invalid user data");
             }
     
+            // Here, you can store the user ID in the token payload
             let payload = {
                 id: user._id,
                 email: user.email,
-                username: user.username,
-                password: user.password
+                username: user.username
+                // You can exclude password from the payload for security reasons
             };
     
+            // Sign the token with the payload
             var token = this.jwtService.sign(payload);
             var tokenDecoded: any = this.jwtService.decode(token);
     
+            // Return the token along with its expiration time
             return {
                 access_token: token,
-                expires_in: tokenDecoded.exp
+                expires_in: tokenDecoded.exp,
+                user_id: user._id // Include user ID in the response
             };
         } catch (error) {
             return {
@@ -89,6 +93,7 @@ export class userAuthService {
             };
         }
     }
+    
     
     validateToken(jwt:string){
         const validatedToken = this.jwtService.sign(jwt);
@@ -110,17 +115,27 @@ export class userAuthService {
             ...userData
         };
     }
-    async changePassword(id:string, newPassword:string){
-        try{
-            const user = await this.userAuthModel.findById(id);
-            if(!user){
+    async changePassword(userId: string, newPassword: string) {
+        try {
+            console.log("hi");
+            const user = await this.userAuthModel.findById(userId);
+            console.log("hi1");
+
+            if (!user) {
                 throw new Error('User not found');
             }
+            console.log("hi2");
+
             user.password = newPassword;
+            console.log("hi3");
+
             await user.save();
-            return{success:true, message:'Password changed successfully'};
-        }catch(error){
-            return{success:false, message:error.message};
+            console.log("hi4");
+
+    
+            return { success: true, message: 'Password changed successfully' };
+        } catch (error) {
+            return { success: false, message: error.message };
         }
     }
     
