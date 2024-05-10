@@ -30,7 +30,6 @@ export class userAuthController {
       const { currentPassword, newPassword } = body;
       return this.userAuthService.changePassword(userId, currentPassword, newPassword);
   }
-  
   @Put('/editUserInfo/:id')
     async editUserInfo(
     @Param('id') userId: string, 
