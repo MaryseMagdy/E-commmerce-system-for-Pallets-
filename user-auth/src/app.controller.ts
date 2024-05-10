@@ -11,22 +11,26 @@ export class userAuthController {
     return this.userAuthService.getHello();
   }
   @Post('/register') 
-  async register(@Body() UserDTO:UserDTO){
-    return this.userAuthService.register(UserDTO);
+    async register(@Body() UserDTO:UserDTO){
+      return this.userAuthService.register(UserDTO);
   }
   @Post('/login')
-  async login(@Body() loginDto){
-    return this.userAuthService.validateUser(loginDto);
+    async login(@Body() loginDto){
+      return this.userAuthService.validateUser(loginDto);
   }
   @Get('/getuserinfo')
-  async getUserinfo(@Body() userDto){
-    return this.userAuthService.getUserinfo(userDto);
+    async getUserinfo(@Body() userDto){
+      return this.userAuthService.getUserinfo(userDto);
   }
   @Put('/changePassword/:id')
-  async changePassword(@Param('id') userId: string, @Body() body: { password: string }) {
-      const newPassword = body.password;
-      return this.userAuthService.changePassword(userId, newPassword);
+  async changePassword(
+      @Param('id') userId: string,
+      @Body() body: { currentPassword: string, newPassword: string }
+  ) {
+      const { currentPassword, newPassword } = body;
+      return this.userAuthService.changePassword(userId, currentPassword, newPassword);
   }
+  
   @Put('/editUserInfo/:id')
     async editUserInfo(
     @Param('id') userId: string, 
@@ -43,10 +47,18 @@ export class userAuthController {
     async forgetPassword(@Body('email') email: string) {
         return await this.userAuthService.forgetPassword(email);
     }
-    @Post('/forget-password/:token')
-    async forgetPasswordT(@Param('token') resetPasswordToken: string, @Body('password') password: string) {
-        return await this.userAuthService.forgetPasswordT(resetPasswordToken, password);
+  @Post('/forget-password/:token')
+    async forgetPasswordT(@Param('token') resetPasswordToken: string, @Body('password') newPassword: string) {
+        return await this.userAuthService.forgetPasswordT(resetPasswordToken, newPassword);
     }
-
+    @Get('/verifyUser/:token')
+    async verifyUser(@Param('token') token: string): Promise<any> {
+        try {
+            await this.userAuthService.verifyUser(token);
+            return { success: true, message: 'Email verified successfully' };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+      }
   }
   

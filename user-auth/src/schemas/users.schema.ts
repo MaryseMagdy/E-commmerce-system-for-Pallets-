@@ -1,3 +1,4 @@
+import { register } from 'module';
 import mongoose, { Schema } from 'mongoose';
 
 const userAuthSchema: Schema = new Schema({
@@ -42,6 +43,10 @@ const userAuthSchema: Schema = new Schema({
     type: String,
     default: null 
   
+  },
+  registerToken:{
+    type: String,
+    default: null
   }
 });
 

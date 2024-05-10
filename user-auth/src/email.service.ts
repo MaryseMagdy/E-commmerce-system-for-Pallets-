@@ -18,22 +18,39 @@ export class EmailService {
         });
     }
 
-    async sendResetPasswordEmail(email: string, resetPasswordToken: string): Promise<{ message: string; resetPasswordToken: string }> {
+    async sendResetPasswordEmail(email: string, resetPasswordLink: string): Promise<{ message: string }> {
         const mailOptions: nodemailer.SendMailOptions = {
             from: 'PalletsPlus <palletsplus2024@outlook.com>',
             to: email,
             subject: 'Password Reset Request',
-            text: `Use this token to reset your password: ${resetPasswordToken}`,
-        };
+            text: `Please click the following link to reset your password: ${resetPasswordLink}`,
+            };
     
         try {
             const info = await this.transporter.sendMail(mailOptions);
             console.log('Email sent: ', info);
     
-            return { message: 'Reset password email sent successfully', resetPasswordToken };
+            return { message: 'Reset password email sent successfully' };
         } catch (error) {
             console.error('Error sending email: ', error);
             throw new Error('Failed to send reset password email');
+        }
+    }
+    
+    async sendRegistrationEmail(email: string, verificationLink: string): Promise<void> {
+        const mailOptions: nodemailer.SendMailOptions = {
+            from: 'PalletsPlus <palletsplus2024@outlook.com>',
+            to: email,
+            subject: 'Email Verification',
+            text: `Please click the following link to verify your email address: ${verificationLink}`,
+        };
+    
+        try {
+            const info = await this.transporter.sendMail(mailOptions);
+            console.log('Email sent: ', info);
+        } catch (error) {
+            console.error('Error sending email: ', error);
+            throw new Error('Failed to send verification email');
         }
     }
 }

@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { userAuth } from './interfaces/userAuth';
 import { UserDTO } from './dto/create.user.dto';
@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { TokenDto } from './dto/token.dto';
 import { EmailService } from './email.service';
 import * as crypto from 'crypto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class userAuthService {
@@ -21,12 +22,46 @@ export class userAuthService {
         private emailService: EmailService
     // ) {this.emailService = emailService;}
     ){}
-    async register(UserDTO:UserDTO){
-        const createAuthenticationUser= new this.userAuthModel(UserDTO)
-        let saveResult = await createAuthenticationUser.save();
-        return saveResult;
-    }
 
+    async register(userDTO: UserDTO) {
+        try {
+            if (userDTO.password.length < 8) {
+                throw new Error('Password must be at least 8 characters long');
+            }
+            if (userDTO.password === userDTO.username || userDTO.password === userDTO.email) {
+                throw new Error('Password must not be the same as the username or email');
+            }
+            const hashedPassword = await bcrypt.hash(userDTO.password, 10); // 10 is the salt rounds
+            userDTO.password = hashedPassword;
+            const newUser = await this.userAuthModel.create(userDTO);
+            const registerToken = this.generateSecureToken();
+            newUser.registerToken = registerToken;
+            await newUser.save();
+
+            const verificationLink = `http://localhost:3000/user/verifyUser/${registerToken}`;
+            await this.emailService.sendRegistrationEmail(newUser.email, verificationLink);
+
+            return { success: true, message: "Registration successful. Please check your email for verification." };
+        } catch (error) {
+            throw new Error('Failed to register user: ' + error.message);
+        }
+}
+
+    
+    async verifyUser(token: string): Promise<void> {
+        try {
+            const user = await this.userAuthModel.findOne({ registerToken: token });
+    
+            if (!user) {
+                throw new HttpException('Invalid verification token', HttpStatus.BAD_REQUEST);
+            }
+    
+            user.registerToken = undefined;
+            await user.save();
+        } catch (error) {
+            throw new HttpException('Invalid verification token', HttpStatus.BAD_REQUEST);
+        }
+    }
     async validateUser(loginDto:LoginDto){
         let loginResult =await this.userAuthModel.findOne({
             username:loginDto.username,
@@ -64,20 +99,32 @@ export class userAuthService {
     }
     async login(user: any) {
         try {
-            if (!user || !user._id || !user.email || !user.username || !user.password) {
+            if (!user || !user.email || !user.password) {
                 throw new Error("Invalid user data");
             }
-                let payload = {
-                id: user._id,
-                email: user.email,
-                username: user.username
+            const existingUser = await this.userAuthModel.findOne({ email: user.email });
+            if (!existingUser) {
+                throw new Error("User not found");
+            }
+            const isPasswordValid = await bcrypt.compare(user.password, existingUser.password);
+    
+            if (!isPasswordValid) {
+                throw new Error("Invalid email or password");
+            }
+            const payload = {
+                id: existingUser._id,
+                email: existingUser.email,
+                username: existingUser.username
             };
-            var token = this.jwtService.sign(payload);
-            var tokenDecoded: any = this.jwtService.decode(token);
+    
+            const token = this.jwtService.sign(payload);
+            const tokenDecoded: any = this.jwtService.decode(token);
+    
             return {
+                success: true,
                 access_token: token,
                 expires_in: tokenDecoded.exp,
-                user_id: user._id 
+                user_id: existingUser._id 
             };
         } catch (error) {
             return {
@@ -86,6 +133,7 @@ export class userAuthService {
             };
         }
     }
+    
     validateToken(jwt:string){
         const validatedToken = this.jwtService.sign(jwt);
         return validatedToken;
@@ -105,29 +153,40 @@ export class userAuthService {
             ...userData
         };
     }
-    async changePassword(userId: string, newPassword: string) {
+
+    async changePassword(userId: string, currentPassword: string, newPassword: string) {
         try {
-            console.log("hi");
             const user = await this.userAuthModel.findById(userId);
-            console.log("hi1");
 
             if (!user) {
                 throw new Error('User not found');
             }
-            console.log("hi2");
 
-            user.password = newPassword;
-            console.log("hi3");
+            const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+            if (!isCurrentPasswordValid) {
+                throw new Error('Invalid current password');
+            }
+
+            if (currentPassword === newPassword) {
+                throw new Error('New password must be different from the old password');
+            }
+
+            if (newPassword.length < 8) {
+                throw new Error('New password must be at least 8 characters long');
+            }
+
+            const hashedPassword = await bcrypt.hash(newPassword, 10); 
+
+            user.password = hashedPassword;
 
             await user.save();
-            console.log("hi4");
 
-    
             return { success: true, message: 'Password changed successfully' };
         } catch (error) {
             return { success: false, message: error.message };
         }
     }
+
     async editUserInfo(id: string, userInfoDTO:userInfoDTO) {
         try {
             const user = await this.userAuthModel.findById(id);
@@ -172,45 +231,51 @@ export class userAuthService {
             if (!user) {
                 throw new Error("User not found");
             }
-
+    
             // Generate reset password token
             const resetPasswordToken = this.generateSecureToken();
-
+    
             // Save the reset password token in the user document
             user.resetPasswordToken = resetPasswordToken;
             await user.save();
-
-            // Send reset password email with the same token
-            await this.emailService.sendResetPasswordEmail(email, resetPasswordToken);
-
+    
+            // Construct reset password link
+            const resetPasswordLink = `http://localhost:3000/forget-password/${resetPasswordToken}`;
+    
+            // Send reset password email with the reset password link
+            await this.emailService.sendResetPasswordEmail(email, resetPasswordLink);
+    
             return { success: true, message: "Reset password email sent successfully" };
         } catch (error) {
             return { success: false, message: error.message };
         }
     }
-
+    
     async forgetPasswordT(resetPasswordToken: string, newPassword: string) {
         try {
-            // Verify token and get user
             const user = await this.verifyTokenAndGetUser(resetPasswordToken);
-
-            // If user not found or token is invalid, throw error
+    
             if (!user) {
                 throw new Error("Invalid or expired token");
             }
-
-            // Update user's password
-            user.password = newPassword;
+    
+            if (newPassword.length < 8) {
+                throw new Error('New password must be at least 8 characters long');
+            }
+    
+            const hashedPassword = await bcrypt.hash(newPassword, 10); 
+    
+            user.password = hashedPassword;
             await user.save();
-
+    
             return { success: true, message: "Password reset successfully" };
         } catch (error) {
             return { success: false, message: error.message };
         }
     }
-
+    
+    
     private async verifyTokenAndGetUser(resetPasswordToken: string) {
-        // Find user by resetPasswordToken
         return await this.userAuthModel.findOne({ resetPasswordToken });
     }
 
