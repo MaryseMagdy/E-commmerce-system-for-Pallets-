@@ -9,20 +9,16 @@ import { TokenDto } from './dto/token.dto';
 import { EmailService } from './email.service';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
+import { MessagePattern } from '@nestjs/microservices';
 
 @Injectable()
-export class userAuthService {
-    getHello(): string {
-        return 'Hello World!';
-      }
+export class userAuthService {     
     constructor(
-        @Inject('userAuth_MODEL')
-        private userAuthModel: Model<userAuth>,        
-        private jwtService:JwtService,
+        @Inject('userAuth_MODEL') private userAuthModel: Model<userAuth>,
+        private jwtService: JwtService,
         private emailService: EmailService
-    // ) {this.emailService = emailService;}
-    ){}
-
+    ) {}
+      
     async register(userDTO: UserDTO) {
         try {
             if (userDTO.password.length < 8) {
@@ -32,8 +28,7 @@ export class userAuthService {
                 throw new Error('Password must not be the same as the username or email');
             }
             const hashedPassword = await bcrypt.hash(userDTO.password, 10); // 10 is the salt rounds
-            userDTO.password = hashedPassword;
-            const newUser = await this.userAuthModel.create(userDTO);
+            const newUser = await this.userAuthModel.create({ ...userDTO, password: hashedPassword });
             const registerToken = this.generateSecureToken();
             newUser.registerToken = registerToken;
             await newUser.save();
@@ -43,7 +38,7 @@ export class userAuthService {
 
             return { success: true, message: "Registration successful. Please check your email for verification." };
         } catch (error) {
-            throw new Error('Failed to register user: ' + error.message);
+            throw new Error('Failed to register user: ' + (error as Error).message);
         }
 }
 
@@ -129,7 +124,7 @@ export class userAuthService {
         } catch (error) {
             return {
                 success: false,
-                message: error.message
+                message: (error as Error).message
             };
         }
     }
@@ -183,7 +178,7 @@ export class userAuthService {
 
             return { success: true, message: 'Password changed successfully' };
         } catch (error) {
-            return { success: false, message: error.message };
+            return { success: false, message:  (error as Error).message };
         }
     }
 
@@ -219,7 +214,7 @@ export class userAuthService {
             await user.save();
             return { success: true, message: "User information updated successfully" };
         } catch (error) {
-            return { success: false, message: error.message };
+            return { success: false,message : (error as Error).message };
         }
     };
     async forgetPassword(email: string) {
@@ -247,7 +242,7 @@ export class userAuthService {
     
             return { success: true, message: "Reset password email sent successfully" };
         } catch (error) {
-            return { success: false, message: error.message };
+            return { success: false, message:+ (error as Error).message };
         }
     }
     
@@ -270,7 +265,7 @@ export class userAuthService {
     
             return { success: true, message: "Password reset successfully" };
         } catch (error) {
-            return { success: false, message: error.message };
+            return { success: false, message: (error as Error).message };
         }
     }
     

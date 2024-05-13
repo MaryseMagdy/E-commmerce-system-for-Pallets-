@@ -6,10 +6,10 @@ import { userInfoDTO } from './dto/userInfo.dto';
 export class userAuthController {
   constructor(private readonly userAuthService: userAuthService) {}
 
-  @Get('/gethello')
-  getHello(): string {
-    return this.userAuthService.getHello();
-  }
+  // @Get('/gethello')
+  // getHello(): string {
+  //   return this.userAuthService.getHello();
+  // }
   @Post('/register') 
     async register(@Body() UserDTO:UserDTO){
       return this.userAuthService.register(UserDTO);

@@ -2,17 +2,19 @@ import { register } from "module";
 import { first } from "rxjs";
 
 export class UserDTO {
-    readonly firstName: string;
-    readonly lastName: string;
-    readonly username: string;
-    password: string;
-    readonly email: string;
-    readonly phoneNum: string;
-    readonly company?: string;
-    readonly address?: string;
-    readonly wishlist: string[];
-    resetPasswordToken: string | null = null; 
-    registerToken:string | null = null;
+    constructor(
+        readonly firstName: string,
+        readonly lastName: string,
+        readonly username: string,
+        readonly password: string,
+        readonly email: string,
+        readonly phoneNum: string,
+        readonly wishlist: string[],
+        readonly company?: string,
+        readonly address?: string,
+        readonly resetPasswordToken: string | null = null,
+        readonly registerToken:string | null = null,
+    ){}
     toString(){
         return JSON.stringify({
             firstName:this.firstName,
