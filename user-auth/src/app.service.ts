@@ -1,15 +1,18 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { userAuth } from './interfaces/userAuth';
 import { UserDTO } from './dto/create.user.dto';
 import { LoginDto } from './dto/login.dto';
+import { addToFavouritesDTO } from './dto/addToFavourites.dto';
 import{ userInfoDTO } from './dto/userInfo.dto';
+import { AddressDto } from '../src/dto/addAddress.dto'; 
 import { JwtService } from '@nestjs/jwt';
 import { TokenDto } from './dto/token.dto';
 import { EmailService } from './email.service';
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
 import { MessagePattern } from '@nestjs/microservices';
+// import {productModel} from '../../product/src/app.service'
 
 @Injectable()
 export class userAuthService {     
@@ -208,11 +211,8 @@ export class userAuthService {
             if (userInfoDTO.company) {
                 user.company = userInfoDTO.company;
             }
-            if (userInfoDTO.address) {
-                user.address = userInfoDTO.address;
-            }
+           
             await user.save();
-            return { success: true, message: "User information updated successfully" };
         } catch (error) {
             return { success: false,message : (error as Error).message };
         }
@@ -268,6 +268,61 @@ export class userAuthService {
             return { success: false, message: (error as Error).message };
         }
     }
+      
+    async addAddress(userId: string, addressDto: AddressDto) {
+        try {
+            console.log(userId);
+            console.log("hi");
+            console.log(addressDto);
+            console.log("h2i");
+            const user = await this.userAuthModel.findById(userId);
+            if (!user) {
+                throw new Error("User not found");
+            }
+    
+            const address = {
+                label: addressDto.label,
+                street: addressDto.street,
+                city: addressDto.city,
+                state: addressDto.state,
+                zip: addressDto.zip
+            };
+    
+            user.address.push(address);
+            await user.save();
+            return { success: true, message: 'Address added successfully' };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    }
+  
+    async addToFavourites(userId: string, productId: mongoose.Types.ObjectId) {
+        try {
+            const user = await this.userAuthModel.findById(userId);
+            if (!user) {
+                return { success: false, message: 'User not found' };
+            }
+
+            if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+                return { success: false, message: 'Invalid product ID' };
+            }
+
+            // const productExists = await productModel.findById(productId);
+            // if (!productExists) {
+            //     return { success: false, message: 'Product not found' };
+            // }
+
+            if (!user.favourite.includes(productId)) {
+                user.favourite.push(productId);
+                await user.save();
+                return { success: true, message: 'Product added to favorites successfully' };
+            } else {
+                return { success: false, message: 'Product already in favorites' };
+            }
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    }
     
     
     private async verifyTokenAndGetUser(resetPasswordToken: string) {
@@ -277,4 +332,5 @@ export class userAuthService {
     private generateSecureToken(): string {
         return crypto.randomBytes(20).toString('hex');
     }
+
 }

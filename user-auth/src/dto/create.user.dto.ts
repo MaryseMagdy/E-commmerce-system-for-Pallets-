@@ -10,8 +10,8 @@ export class UserDTO {
         readonly email: string,
         readonly phoneNum: string,
         readonly wishlist: string[],
-        readonly company?: string,
-        readonly address?: string,
+        readonly address: string[],
+        readonly company: string,
         readonly resetPasswordToken: string | null = null,
         readonly registerToken:string | null = null,
     ){}

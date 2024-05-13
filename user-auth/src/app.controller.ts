@@ -2,6 +2,8 @@ import { Controller, Get, Post, Body, Put, Param } from '@nestjs/common';
 import { userAuthService } from './app.service';
 import { UserDTO } from './dto/create.user.dto'; // Import the UserDTO type
 import { userInfoDTO } from './dto/userInfo.dto';
+import { AddressDto } from './dto/addAddress.dto';
+import mongoose from 'mongoose';
 @Controller('user')
 export class userAuthController {
   constructor(private readonly userAuthService: userAuthService) {}
@@ -50,7 +52,7 @@ export class userAuthController {
     async forgetPasswordT(@Param('token') resetPasswordToken: string, @Body('password') newPassword: string) {
         return await this.userAuthService.forgetPasswordT(resetPasswordToken, newPassword);
     }
-    @Get('/verifyUser/:token')
+  @Get('/verifyUser/:token')
     async verifyUser(@Param('token') token: string): Promise<any> {
         try {
             await this.userAuthService.verifyUser(token);
@@ -59,5 +61,22 @@ export class userAuthController {
             return { success: false, message: error.message };
         }
       }
+  @Post('/addAddress/:userId')
+   async addAddress(@Param('userId') userId: string, @Body() address: AddressDto) {
+    try {
+        const result = await this.userAuthService.addAddress(userId, address);
+        return { success: true, message: result };
+    } catch (error) {
+        return { success: false, message: error.message };
+    }
   }
-  
+  @Post('/addToFavourites/:userId')
+  async addToFavourites(@Param('userId') userId: string, @Body('productId') productId: mongoose.Types.ObjectId) {
+    try {
+        const result = await this.userAuthService.addToFavourites(userId, productId);
+        return { success: result.success, message: result.message };
+    } catch (error) {
+        return { success: false, message: error.message };
+    }
+  }
+}
