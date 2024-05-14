@@ -1,4 +1,4 @@
-import mongoose, { mongo } from "mongoose";
+import mongoose, { ObjectId, mongo } from "mongoose";
 
 export interface userAuth extends Document {
     firstName: string;
@@ -14,6 +14,12 @@ export interface userAuth extends Document {
         city: string;
         state: string;
         zip: string;
+    }[];
+    reviews: {
+        content: string;
+        userId: mongoose.Types.ObjectId;
+        productId: mongoose.Types.ObjectId;
+        rating: number;
     }[];
     favourite: mongoose.Types.ObjectId[]; 
     wishlist: string[];

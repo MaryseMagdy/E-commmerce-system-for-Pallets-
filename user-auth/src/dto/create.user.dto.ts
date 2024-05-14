@@ -14,6 +14,7 @@ export class UserDTO {
         readonly company: string,
         readonly resetPasswordToken: string | null = null,
         readonly registerToken:string | null = null,
+        readonly reviews: string[],
     ){}
     toString(){
         return JSON.stringify({
@@ -27,7 +28,8 @@ export class UserDTO {
             address:this.address,
             wishlist:this.wishlist,
             resetPasswordToken:this.resetPasswordToken,
-            registerToken:this.registerToken
+            registerToken:this.registerToken,
+            reviews: this.reviews
         }
         );
     }

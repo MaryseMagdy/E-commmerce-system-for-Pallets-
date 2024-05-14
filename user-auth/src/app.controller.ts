@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, Put, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, HttpException, HttpStatus } from '@nestjs/common';
 import { userAuthService } from './app.service';
 import { UserDTO } from './dto/create.user.dto'; // Import the UserDTO type
 import { userInfoDTO } from './dto/userInfo.dto';
 import { AddressDto } from './dto/addAddress.dto';
+import { ViewUserReview } from './dto/viewUserReview.dto';
 import mongoose from 'mongoose';
+import { Reviews } from './dto/reviews.dto';
 @Controller('user')
 export class userAuthController {
   constructor(private readonly userAuthService: userAuthService) {}
@@ -61,6 +63,7 @@ export class userAuthController {
             return { success: false, message: error.message };
         }
       }
+    //Addresses
   @Post('/:userId/addAddress')
    async addAddress(@Param('userId') userId: string, @Body() address: AddressDto) {
     try {
@@ -74,6 +77,28 @@ export class userAuthController {
   async deleteAddress(@Param('userId') userId: string, @Param('index') index: string) {
       return this.userAuthService.deleteAddress(userId, parseInt(index));
   }
+  @Get('addresses/:userId')
+  async getUserAddresses(@Param('userId') userId: string) {
+    try {
+        const result = await this.userAuthService.getUserAddresses(userId);
+        if (result.success) {
+            return { success: true, addresses: result.addresses };
+        } else {
+            throw new HttpException(result.message, HttpStatus.BAD_REQUEST);
+        }
+    } catch (error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
+  @Put('/:userId/addresses/:index')
+  async editAddress(@Param('userId') userId: string, @Param('index') index: string, @Body() addressDto: AddressDto) {
+    try {
+        const result = await this.userAuthService.editUserAddress(userId, parseInt(index), addressDto);
+        return { success: true, message: 'Address updated successfully', address: result.address };
+    } catch (error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+  }
 
   @Post('/addToFavourites/:userId')
   async addToFavourites(@Param('userId') userId: string, @Body('productId') productId: mongoose.Types.ObjectId) {
@@ -83,5 +108,49 @@ export class userAuthController {
     } catch (error) {
         return { success: false, message: error.message };
     }
+  } 
+  //Reviews
+  @Post('reviews/:userId')
+  async createReview(@Param('userId') userId: string, @Body() reviewData: Reviews) {
+      try {
+          const newReview = await this.userAuthService.createReview(userId, reviewData);
+          return { success: true, message: 'Review added successfully', review: newReview };
+      } catch (error) {
+          throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+      }
+    }
+  
+  @Get('reviews/:userId')
+  async getUserReviews(@Param('userId') userId: string) {
+      try {
+          const reviews = await this.userAuthService.viewUserReviews(userId);
+          return { success: true, reviews };
+      } catch (error) {
+          if (error instanceof HttpException) {
+              throw error;
+          }
+          throw new HttpException('Unexpected error occurred', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
   }
+
+  @Delete('reviews/:userId/:reviewId')
+  async deleteReview(@Param('userId') userId: string, @Param('reviewId') reviewId: string) {
+    try {
+        const result = await this.userAuthService.deleteReview(userId, reviewId);
+        return { success: true, message: result.message };
+    } catch (error) {
+        throw new HttpException(error.message, error.status || HttpStatus.BAD_REQUEST);
+    }
+  }
+  @Put('reviews/:userId/:reviewId')
+  async editReview(@Param('userId') userId: string, @Param('reviewId') reviewId: string, @Body() updateData: { content?: string, rating?: number }) {
+    try {
+        const updatedReview = await this.userAuthService.editReview(userId, reviewId, updateData);
+        return { success: true, message: 'Review updated successfully', review: updatedReview };
+    } catch (error) {
+        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+    }
+}
+
+
 }

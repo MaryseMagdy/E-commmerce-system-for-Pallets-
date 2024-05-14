@@ -41,6 +41,13 @@ const favouriteSchema: Schema = new Schema({
     required: true
   }
 });
+const ReviewSchema: Schema = new Schema({
+  userId: { type: Schema.Types.ObjectId, required: true },
+  productId: { type: Schema.Types.ObjectId, ref: 'Product', required: true },
+  content: { type: String, required: true },
+  rating: { type: Number, required: true },
+});
+
 const userAuthSchema: Schema = new Schema({
   firstName: {
     type: String,
@@ -74,6 +81,10 @@ const userAuthSchema: Schema = new Schema({
   },
   address: {
     type: [addressSchema],  
+    required: false
+  },
+  reviews: {
+    type: [ReviewSchema],
     required: false
   },
   wishlist: {

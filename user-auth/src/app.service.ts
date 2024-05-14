@@ -6,6 +6,9 @@ import { LoginDto } from './dto/login.dto';
 import { addToFavouritesDTO } from './dto/addToFavourites.dto';
 import{ userInfoDTO } from './dto/userInfo.dto';
 import { AddressDto } from '../src/dto/addAddress.dto'; 
+import { ViewUserReview } from './dto/viewUserReview.dto';
+import { ViewAllProductReview } from './dto/viewAllProductReview.dto';
+import { Reviews } from './dto/reviews.dto';
 import { JwtService } from '@nestjs/jwt';
 import { TokenDto } from './dto/token.dto';
 import { EmailService } from './email.service';
@@ -343,15 +346,120 @@ export class userAuthService {
             return { success: false, message: error.message };
         }
     }
-
-    
-    
     private async verifyTokenAndGetUser(resetPasswordToken: string) {
         return await this.userAuthModel.findOne({ resetPasswordToken });
     }
-
     private generateSecureToken(): string {
         return crypto.randomBytes(20).toString('hex');
     }
+
+    async editUserAddress(userId: string, addressIndex: number, addressDto: AddressDto) {
+        try {
+            const user = await this.userAuthModel.findById(userId);
+            if (!user) {
+                throw new Error("User not found");
+            }
+    
+            // Check if the address index is valid
+            if (addressIndex < 0 || addressIndex >= user.address.length) {
+                throw new Error("Address not found");
+            }
+    
+            // Update the address with new data
+            const address = user.address[addressIndex];
+            address.label = addressDto.label ?? address.label;
+            address.street = addressDto.street ?? address.street;
+            address.city = addressDto.city ?? address.city;
+            address.state = addressDto.state ?? address.state;
+            address.zip = addressDto.zip ?? address.zip;
+    
+            await user.save();
+            return { success: true, message: 'Address updated successfully', address: user.address[addressIndex] };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    }
+
+  // -------------AMR-----------------------------
+
+  async getUserAddresses(userId: string) {
+    try {
+        const user = await this.userAuthModel.findById(userId);
+        if (!user) {
+            throw new Error("User not found");
+        }
+        if (!user.address) {
+            throw new Error("No addresses found");
+        }
+        return { success: true, addresses: user.address };
+    } catch (error) {
+        return { success: false, message: error.message };
+    }
+}
+  async createReview(userId: string, reviewData: Reviews) {
+    const user = await this.userAuthModel.findById(userId);
+    if (!user) {
+        throw new Error('User not found');
+    }
+    if (!mongoose.Types.ObjectId.isValid(reviewData.productId)) {
+        throw new Error('Invalid productId');
+    }
+
+    const review = {
+        userId: user._id, 
+        productId: new mongoose.Types.ObjectId(reviewData.productId), 
+        content: reviewData.content,
+        rating: reviewData.rating,
+    };
+
+    user.reviews.push(review);
+    await user.save();
+    return user.reviews[user.reviews.length - 1]; // Return the last review
+    }   
+  async viewUserReviews(userId: string) {
+    const user = await this.userAuthModel.findById(userId);
+    if (!user) {
+        throw new Error('User not found');
+    }else{
+
+        return user.reviews;
+    }
+  }
+  
+  async deleteReview(userId: string, reviewId: string) {
+    const user = await this.userAuthModel.findById(userId);
+    if (!user) {
+        throw new Error('User not found');
+    }
+    const reviews: any[] = user.reviews;
+    const reviewIndex = reviews.findIndex(r => r._id.toString() === reviewId);
+    if (reviewIndex === -1) {
+        throw new Error('Review not found');
+    }
+
+    user.reviews.splice(reviewIndex, 1);
+    await user.save();
+    return { message: 'Review deleted successfully' };
+    }
+    async editReview(userId: string, reviewId: string, updateData: { content?: string, rating?: number }) {
+        const user = await this.userAuthModel.findById(userId);
+        if (!user) {
+            throw new Error('User not found');
+        }
+        const reviews: any[] = user.reviews;
+        const review = reviews.find(r => r._id.toString() === reviewId);
+        if (!review) {
+            throw new Error('Review not found');
+        }
+        if (updateData.content) {
+            review.content = updateData.content;
+        }
+        if (updateData.rating) {
+            review.rating = updateData.rating;
+        }
+        await user.save();
+        return review;
+    }
+
 
 }

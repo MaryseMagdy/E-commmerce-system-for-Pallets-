@@ -51,7 +51,8 @@ import { EmailService } from './email.service';
       secret: 'your-secret-key', 
       signOptions: { expiresIn: '1d' },
     }),
-    MongooseModule.forRoot('mongodb://127.0.0.1:27017/SE-Project2'), ],
+    MongooseModule.forRoot('mongodb://127.0.0.1:27017/SE-Project2'), 
+  ],
   controllers: [userAuthController],
   providers: [
     userAuthService,
