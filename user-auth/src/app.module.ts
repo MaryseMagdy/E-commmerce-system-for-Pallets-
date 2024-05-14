@@ -1,4 +1,3 @@
-
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
@@ -10,58 +9,45 @@ import { databaseProviders } from './database/database.provider';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { ClientsModule, Transport } from '@nestjs/microservices';
+import { JwtService} 
+from '@nestjs/jwt';
 import { EmailService } from './email.service';
 
 @Module({
   imports: [
-    ClientsModule.register([
-      {
-        name:'ORDER_SERVICE',
-        transport:Transport.KAFKA,
-        options:{
-          client:{
-            clientId:'order',
-            brokers:['localhost:9092']
-          },
-          consumer:{
-            groupId:'order-consumer',
-          }
-        }
-      },
-    ]),
-    ClientsModule.register([
-      {
-        name:'PRODUCT_SERVICE',
-        transport:Transport.KAFKA,
-        options:{
-          client:{
-            clientId:'product',
-            brokers:['localhost:9092']
-          },
-          consumer:{
-            groupId:'product-consumer',
-          }
-        }
-      },
-    ]),
     MongooseModule.forFeature([
       { name: 'users', schema: UserAuthSchema },
     ]),
     JwtModule.register({
-      secret: 'your-secret-key', 
+      secret: 'default_secret', 
       signOptions: { expiresIn: '1d' },
     }),
-    MongooseModule.forRoot('mongodb://127.0.0.1:27017/SE-Project2'), 
+    ClientsModule.register([
+      {
+        name: 'USER_AUTH_SERVICE',
+        transport: Transport.KAFKA,
+        options: {
+          client: {
+            clientId: 'user-authClientId',
+            brokers: ['localhost:9092']
+          },
+          consumer: {
+            groupId: 'user-auth-consumer',
+          }
+        }
+      }
+    ]),
+    MongooseModule.forRoot('mongodb://127.0.0.1:27017/SE-Project2')
   ],
   controllers: [userAuthController],
   providers: [
     userAuthService,
     ...userAuthprovider,
     ...databaseProviders,
+    EmailService,
     LocalStrategy,
     JwtStrategy,
-    EmailService,
   ],
-  exports: [...databaseProviders,EmailService],
+  exports: [...databaseProviders],
 })
 export class userAuthModule {}

@@ -1,11 +1,14 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, HttpException, HttpStatus, Req, Res } from '@nestjs/common';
 import { userAuthService } from './app.service';
+import { Response, Request } from 'express';
 import { UserDTO } from './dto/create.user.dto'; // Import the UserDTO type
 import { userInfoDTO } from './dto/userInfo.dto';
 import { AddressDto } from './dto/addAddress.dto';
 import { ViewUserReview } from './dto/viewUserReview.dto';
 import mongoose from 'mongoose';
 import { Reviews } from './dto/reviews.dto';
+import { LoginDto } from './dto/login.dto';
+
 @Controller('user')
 export class userAuthController {
   constructor(private readonly userAuthService: userAuthService) {}
@@ -19,9 +22,31 @@ export class userAuthController {
       return this.userAuthService.register(UserDTO);
   }
   @Post('/login')
-    async login(@Body() loginDto){
-      return this.userAuthService.validateUser(loginDto);
-  }
+  async login(@Body() loginDto: LoginDto, @Req() req: Request, @Res() res: Response) {
+      try {
+          const { token, user } = await this.userAuthService.validateUser(loginDto);
+          console.log(token);
+          console.log(user);
+
+          if (!token || !user) {
+              res.status(401).json({ message: "Authentication failed" });
+              return;
+          }
+
+          // Set cookie with the JWT and send response
+          res.cookie('jwt', token, {
+              httpOnly: true,
+              secure: false,
+              path: '/',
+              maxAge: 3600000 
+          });
+
+          return res.json({ success: true, message: 'Logged in successfully', user });
+      } catch (error) {
+          return res.status(500).json({ message: error.message });
+      }
+  }
+
   @Get('/getuserinfo')
     async getUserinfo(@Body() userDto){
       return this.userAuthService.getUserinfo(userDto);
@@ -90,7 +115,7 @@ export class userAuthController {
         throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
     }
   }
-  @Put('/:userId/addresses/:index')
+@Put('/:userId/addresses/:index')
   async editAddress(@Param('userId') userId: string, @Param('index') index: string, @Body() addressDto: AddressDto) {
     try {
         const result = await this.userAuthService.editUserAddress(userId, parseInt(index), addressDto);
