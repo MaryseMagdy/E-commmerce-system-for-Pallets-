@@ -295,6 +295,26 @@ export class userAuthService {
             return { success: false, message: error.message };
         }
     }
+    
+    async deleteAddress(userId: string, index: number) {
+        try {
+            const user = await this.userAuthModel.findById(userId);
+            if (!user) {
+                throw new Error("User not found");
+            }
+            
+            if (index >= user.address.length || index < 0) {
+                throw new Error("Invalid address index");
+            }
+
+            user.address.splice(index, 1);
+            await user.save();
+            return { success: true, message: 'Address deleted successfully' };
+        } catch (error) {
+            return { success: false, message: error.message };
+        }
+    }
+
   
     async addToFavourites(userId: string, productId: mongoose.Types.ObjectId) {
         try {
@@ -323,6 +343,7 @@ export class userAuthService {
             return { success: false, message: error.message };
         }
     }
+
     
     
     private async verifyTokenAndGetUser(resetPasswordToken: string) {

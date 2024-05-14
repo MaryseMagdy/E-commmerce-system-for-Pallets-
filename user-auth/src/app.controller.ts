@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete } from '@nestjs/common';
 import { userAuthService } from './app.service';
 import { UserDTO } from './dto/create.user.dto'; // Import the UserDTO type
 import { userInfoDTO } from './dto/userInfo.dto';
@@ -61,7 +61,7 @@ export class userAuthController {
             return { success: false, message: error.message };
         }
       }
-  @Post('/addAddress/:userId')
+  @Post('/:userId/addAddress')
    async addAddress(@Param('userId') userId: string, @Body() address: AddressDto) {
     try {
         const result = await this.userAuthService.addAddress(userId, address);
@@ -70,6 +70,11 @@ export class userAuthController {
         return { success: false, message: error.message };
     }
   }
+  @Delete(':userId/addresses/:index')
+  async deleteAddress(@Param('userId') userId: string, @Param('index') index: string) {
+      return this.userAuthService.deleteAddress(userId, parseInt(index));
+  }
+
   @Post('/addToFavourites/:userId')
   async addToFavourites(@Param('userId') userId: string, @Body('productId') productId: mongoose.Types.ObjectId) {
     try {
