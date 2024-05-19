@@ -1,26 +1,30 @@
-"use client";
-
 import React, { useState } from 'react';
 import Head from 'next/head';
 import axios from 'axios';
 import styles from './page.module.css';
 
 const RegisterPage = (props) => {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [phoneNum, setPhoneNum] = useState('');
 
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:3000/user/register', {
+      const response = await axios.post('http://localhost:4000/user/register', {
+        firstName,
+        lastName,
         email,
         username,
-        password
+        password,
+        phoneNum
       });
       console.log('Registration successful:', response.data);
     } catch (error) {
-      console.error('Error during registration:', error);
+      console.error('Error during registration:', error.response.data.message);
     }
   };
 
@@ -38,6 +42,28 @@ const RegisterPage = (props) => {
             <span>Create an account</span>
           </span>
           <form onSubmit={handleRegister} className={styles['register-form']}>
+            <label className={styles['register-page-text04']} htmlFor="firstName">
+              First Name:
+            </label>
+            <input
+              type="text"
+              id="firstName"
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              className={styles['register-page-input']}
+              required
+            />
+            <label className={styles['register-page-text06']} htmlFor="lastName">
+              Last Name:
+            </label>
+            <input
+              type="text"
+              id="lastName"
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              className={styles['register-page-input']}
+              required
+            />
             <label className={styles['register-page-text04']} htmlFor="email">
               Email:
             </label>
@@ -71,6 +97,17 @@ const RegisterPage = (props) => {
               className={styles['register-page-input']}
               required
             />
+            <label className={styles['register-page-text08']} htmlFor="phoneNum">
+              Phone Number:
+            </label>
+            <input
+              type="text"
+              id="phoneNum"
+              value={phoneNum}
+              onChange={(e) => setPhoneNum(e.target.value)}
+              className={styles['register-page-input']}
+              required
+            />
             <button type="submit" className={styles['register-page-button']}>
               Register
             </button>
@@ -86,7 +123,7 @@ const RegisterPage = (props) => {
                 }}
               />
             </span>
-            <span>Login</span>
+            <link>Login</link>
           </span>
         </div>
       </div>

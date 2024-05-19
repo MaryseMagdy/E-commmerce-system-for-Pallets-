@@ -9,7 +9,7 @@ import { databaseProviders } from './database/database.provider';
 import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { PaymentModule } from '../../payment/src/app.module';
+// import { PaymentModule } from '../../payment/src/app.module';
 import { EmailService } from './email.service';
 
 @Module({
@@ -35,7 +35,6 @@ import { EmailService } from './email.service';
       },
     ]),
     MongooseModule.forRoot('mongodb://127.0.0.1:27017/SE-Project2'),
-    PaymentModule,
   ],
   controllers: [userAuthController],
   providers: [
