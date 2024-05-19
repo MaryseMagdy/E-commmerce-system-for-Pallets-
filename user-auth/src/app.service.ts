@@ -8,12 +8,12 @@ import { userInfoDTO } from './dto/userInfo.dto';
 import { Request, Response } from 'express';
 import { AddressDto } from '../src/dto/addAddress.dto'; 
 import { ViewUserReview } from './dto/viewUserReview.dto';
-import { Reviews } from './dto/reviews.dto';
 import { JwtService } from '@nestjs/jwt';
 import { TokenDto } from './dto/token.dto';
 import { EmailService } from './email.service';
 import * as crypto from 'crypto';
 import { MessagePattern } from '@nestjs/microservices';
+import { Reviews } from './dto/Reviews.dto';
 
 @Injectable()
 export class userAuthService {     
@@ -79,7 +79,7 @@ export class userAuthService {
             console.error(error);
             res.status(500).json({
                 success: false,
-                message: error.message
+                message: (error as Error).message
             });
         }
     }
@@ -151,7 +151,7 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
                 throw new HttpException('Invalid verification token', HttpStatus.BAD_REQUEST);
             }
     
-            user.registerToken = undefined;
+            user.registerToken = '';
             await user.save();
         } catch (error) {
             throw new HttpException('Invalid verification token', HttpStatus.BAD_REQUEST);
@@ -193,7 +193,8 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
             await user.save();
             return { success: true, message: 'User info updated successfully' };
         } catch (error) {
-            return { success: false, message: error.message };
+            return { success: false, message: (error as Error).message
+            };
         }
     }
     async forgetPassword(email: string) {
@@ -242,7 +243,7 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
             
             user.password = newPassword;
 
-            user.resetPasswordToken = undefined;
+            user.resetPasswordToken = "";
             await user.save();
 
     
@@ -275,7 +276,8 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
             await user.save();
             return { success: true, message: 'Address added successfully' };
         } catch (error) {
-            return { success: false, message: error.message };
+            return { success: false, message: (error as Error).message
+            };
         }
     }
     
@@ -294,7 +296,7 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
             await user.save();
             return { success: true, message: 'Address deleted successfully' };
         } catch (error) {
-            return { success: false, message: error.message };
+            return { success: false,  message: (error as Error).message };
         }
     }
 
@@ -323,7 +325,7 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
                 return { success: false, message: 'Product already in favorites' };
             }
         } catch (error) {
-            return { success: false, message: error.message };
+            return { success: false, message: (error as Error).message };
         }
     }
     private async verifyTokenAndGetUser(resetPasswordToken: string) {
@@ -356,7 +358,7 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
             await user.save();
             return { success: true, message: 'Address updated successfully', address: user.address[addressIndex] };
         } catch (error) {
-            return { success: false, message: error.message };
+            return { success: false, message: (error as Error).message };
         }
     }
 
@@ -373,7 +375,7 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
         }
         return { success: true, addresses: user.address };
     } catch (error) {
-        return { success: false, message: error.message };
+        return { success: false,  message: (error as Error).message };
     }
 }
   async createReview(userId: string, reviewData: Reviews) {

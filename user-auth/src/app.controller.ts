@@ -6,7 +6,7 @@ import { userInfoDTO } from './dto/userInfo.dto';
 import { AddressDto } from './dto/addAddress.dto';
 import { ViewUserReview } from './dto/viewUserReview.dto';
 import mongoose from 'mongoose';
-import { Reviews } from './dto/reviews.dto';
+import { Reviews } from './dto/Reviews.dto';
 import { LoginDto } from './dto/login.dto';
 
 @Controller('user')
@@ -43,7 +43,7 @@ export class userAuthController {
 
           return res.json({ success: true, message: 'Logged in successfully', user });
       } catch (error) {
-          return res.status(500).json({ message: error.message });
+          return res.status(500).json((error as Error).message);
       }
   }
 
@@ -68,7 +68,7 @@ export class userAuthController {
         const result = await this.userAuthService.editUserInfo(userId, userInfoDTO);
         return { success: true, message: result };
     } catch (error) {
-        return { success: false, message: error.message };
+        return { success: false,messag: (error as Error).message };
     }
     } 
   @Post('/forget-password')
@@ -85,7 +85,7 @@ export class userAuthController {
             await this.userAuthService.verifyUser(token);
             return { success: true, message: 'Email verified successfully' };
         } catch (error) {
-            return { success: false, message: error.message };
+            return { success: false, message:(error as Error).message };
         }
       }
     //Addresses
@@ -95,7 +95,7 @@ export class userAuthController {
         const result = await this.userAuthService.addAddress(userId, address);
         return { success: true, message: result };
     } catch (error) {
-        return { success: false, message: error.message };
+        return { success: false, message: (error as Error).message };
     }
   }
   @Delete(':userId/addresses/:index')
@@ -109,10 +109,10 @@ export class userAuthController {
         if (result.success) {
             return { success: true, addresses: result.addresses };
         } else {
-            throw new HttpException(result.message, HttpStatus.BAD_REQUEST);
+            throw new HttpException((Error), HttpStatus.BAD_REQUEST);
         }
     } catch (error) {
-        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        throw new HttpException(Error, HttpStatus.BAD_REQUEST);
     }
   }
 @Put('/:userId/addresses/:index')
@@ -121,7 +121,7 @@ export class userAuthController {
         const result = await this.userAuthService.editUserAddress(userId, parseInt(index), addressDto);
         return { success: true, message: 'Address updated successfully', address: result.address };
     } catch (error) {
-        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        throw new HttpException(Error, HttpStatus.BAD_REQUEST);
     }
   }
 
@@ -131,7 +131,7 @@ export class userAuthController {
         const result = await this.userAuthService.addToFavourites(userId, productId);
         return { success: result.success, message: result.message };
     } catch (error) {
-        return { success: false, message: error.message };
+        return { success: false, message: (error as Error).message };
     }
   } 
   //Reviews
@@ -141,7 +141,7 @@ export class userAuthController {
           const newReview = await this.userAuthService.createReview(userId, reviewData);
           return { success: true, message: 'Review added successfully', review: newReview };
       } catch (error) {
-          throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+          throw new HttpException(Error, HttpStatus.BAD_REQUEST);
       }
     }
   
@@ -164,7 +164,7 @@ export class userAuthController {
         const result = await this.userAuthService.deleteReview(userId, reviewId);
         return { success: true, message: result.message };
     } catch (error) {
-        throw new HttpException(error.message, error.status || HttpStatus.BAD_REQUEST);
+        throw new HttpException(Error, HttpStatus.BAD_REQUEST);
     }
   }
   @Put('reviews/:userId/:reviewId')
@@ -173,7 +173,7 @@ export class userAuthController {
         const updatedReview = await this.userAuthService.editReview(userId, reviewId, updateData);
         return { success: true, message: 'Review updated successfully', review: updatedReview };
     } catch (error) {
-        throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
+        throw new HttpException(Error, HttpStatus.BAD_REQUEST);
     }
 }
 

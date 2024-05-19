@@ -8,6 +8,15 @@ export class userInfoDTO{
     readonly phoneNum: string;
     readonly company?: string;
     readonly address?: string;
+    constructor(firstName: string, lastName: string, username: string, email: string, phoneNum: string, company?: string, address?: string){
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.username = username;
+        this.email = email;
+        this.phoneNum = phoneNum;
+        this.company = company;
+        this.address = address;
+    }
     toString(){
         return JSON.stringify({
             firstName:this.firstName,

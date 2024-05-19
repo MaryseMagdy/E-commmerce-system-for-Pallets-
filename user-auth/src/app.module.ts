@@ -10,17 +10,13 @@ import { LocalStrategy } from './strategies/local.strategy';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { PaymentModule } from '../../payment/src/app.module';
-import { JwtService} 
-from '@nestjs/jwt';
 import { EmailService } from './email.service';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: 'users', schema: UserAuthSchema },
-    ]),
+    MongooseModule.forFeature([{ name: 'users', schema: UserAuthSchema }]),
     JwtModule.register({
-      secret: 'default_secret', 
+      secret: 'default_secret',
       signOptions: { expiresIn: '1d' },
     }),
     ClientsModule.register([
@@ -30,17 +26,16 @@ import { EmailService } from './email.service';
         options: {
           client: {
             clientId: 'user-authClientId',
-            brokers: ['localhost:9092']
+            brokers: ['localhost:9092'],
           },
           consumer: {
             groupId: 'user-auth-consumer',
-          }
-        }
-      }
+          },
+        },
+      },
     ]),
     MongooseModule.forRoot('mongodb://127.0.0.1:27017/SE-Project2'),
     PaymentModule,
-
   ],
   controllers: [userAuthController],
   providers: [

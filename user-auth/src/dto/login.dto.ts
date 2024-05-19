@@ -5,7 +5,10 @@ export class LoginDto{
     readonly password: String; 
     static username: string;
     static password: string;
-
+    constructor(username: String, password: String){
+        this.username = username;
+        this.password = password;
+    }
     toString(){
         return JSON.stringify({
             
