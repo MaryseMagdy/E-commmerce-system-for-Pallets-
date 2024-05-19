@@ -1,7 +1,7 @@
-import { first } from "rxjs";
+import { first } from 'rxjs/operators';
 
 export class productDTO {
-  readonly image: string;
+  readonly image: string | null;
   readonly name: string;
   readonly price: number;
   readonly rating: number;
@@ -11,9 +11,21 @@ export class productDTO {
   readonly material: string;
   readonly size: number;
   readonly customized: boolean;
-  readonly id: string;
   readonly ratings: number[];
 
+  constructor(image: string | null, name: string, price: number, rating: number, description: string, availability: boolean, color: string, material: string, size: number, customized: boolean, ratings: number[]) {
+    this.image = image;
+    this.name = name;
+    this.price = price;
+    this.rating = rating;
+    this.description = description;
+    this.availability = availability;
+    this.color = color;
+    this.material = material;
+    this.size = size;
+    this.customized = customized;
+    this.ratings = ratings;
+  }
       
     toString() {
         return JSON.stringify({
@@ -27,7 +39,6 @@ export class productDTO {
             material: this.material,
             size: this.size,
             customized: this.customized,
-            id: this.id,
             ratings: this.ratings
         });
     

@@ -1,6 +1,7 @@
+'use client'
 import React, { useState } from 'react';
 import Head from 'next/head';
-import axios from 'axios';
+import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 
 const RegisterPage = (props) => {
@@ -10,34 +11,56 @@ const RegisterPage = (props) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [phoneNum, setPhoneNum] = useState('');
+  const [message, setMessage] = useState('');
+  const router = useRouter();
 
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post('http://localhost:4000/user/register', {
-        firstName,
-        lastName,
-        email,
-        username,
-        password,
-        phoneNum
+      const response = await fetch('http://localhost:8000/user/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          email,
+          username,
+          password,
+          phoneNum
+        }),
+
       });
-      console.log('Registration successful:', response.data);
+      const data = await response.json();
+      console.log(data);
+      // console.log("done1")
+      console.log(data.user);
+      // console.log("done2")
+      // console.log(data.message);
+      // console.log("done3")
+      setMessage(data.message);
+      if (data.success) {
+        router.push('/check-email'); // Redirect to Check Email page
+      }
     } catch (error) {
-      console.error('Error during registration:', error.response.data.message);
+      setMessage('Error during registration. Please try again.');
+      console.error('Error during registration:', error);
     }
   };
 
   return (
     <>
-      <div className={styles['register-page-container']}>
+      <div className={styles['register-page-container']} style={{ marginTop: '-5rem' }}>
         <Head>
-          <title>PalletsPlus - Register</title>
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+            rel="stylesheet" integrity="sha384QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+            crossorigin="anonymous" />
         </Head>
+        <span className={styles['register-page-text']}>
+          <span>PalletsPlus</span>
+        </span>
         <div className={styles['register-page-register-page']}>
-          <span className={styles['register-page-text']}>
-            <span>PalletsPlus</span>
-          </span>
           <span className={styles['register-page-text02']}>
             <span>Create an account</span>
           </span>
@@ -123,7 +146,7 @@ const RegisterPage = (props) => {
                 }}
               />
             </span>
-            <link>Login</link>
+            <a href="/login">Login</a>
           </span>
         </div>
       </div>

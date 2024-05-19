@@ -30,10 +30,10 @@ export class userAuthService {
             newUser.registerToken = registerToken;
             await newUser.save();
 
-            const verificationLink = `http://localhost:3000/user/verifyUser/${registerToken}`;
+            const verificationLink = `http://localhost:3000/verify/${registerToken}`;
             await this.emailService.sendRegistrationEmail(newUser.email, verificationLink);
 
-            return { success: true, message: "Registration successful. Please check your email for verification." };
+            return { success: true, message: "Registration successful. Please check your email for verification.", user: newUser};
         } catch (error) {
             throw new Error('Failed to register user: ' + (error as Error).message);
         }

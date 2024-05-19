@@ -1,0 +1,45 @@
+.checkEmailContainer {
+    background-image: url("/tq_az7ku4h-wq-asb8-1500w.png");
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+  }
+  
+  .content {
+    width: 670px;
+    padding: 40px;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 15px;
+    text-align: center;
+  }
+  
+  .title {
+    color: rgba(16, 44, 191, 1);
+    font-size: 46px;
+    font-weight: 600;
+    font-family: Poppins, sans-serif;
+    margin-bottom: 20px;
+  }
+  
+  .message {
+    color: rgba(255, 255, 255, 1);
+    font-size: 22px;
+    font-family: Poppins, sans-serif;
+    margin-bottom: 30px;
+  }
+  
+  .button {
+    width: 137px;
+    height: 44px;
+    border-radius: 10px;
+    background-color: #ffffff;
+    font-size: 22px;
+    font-family: Poppins, sans-serif;
+    cursor: pointer;
+    border: none;
+    color: rgba(101, 101, 101, 1);
+  }
+
+  

@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 const productSchema: Schema = new Schema({
   image: {
     type: String,
-    required: true
+    required: false
   },
   name: {
     type: String,
@@ -39,10 +39,6 @@ const productSchema: Schema = new Schema({
   },
   customized: {
     type: Boolean,
-    required: true
-  },
-  id: {
-    type: String,
     required: true
   },
   ratings: {

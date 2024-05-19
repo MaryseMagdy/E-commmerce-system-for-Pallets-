@@ -10,6 +10,5 @@ export interface Product extends Document {
   material: string;
   size: number;
   customized: boolean;
-  id: string;
   ratings: number[];
 }

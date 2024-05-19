@@ -17,10 +17,42 @@ export class userAuthController {
   // getHello(): string {
   //   return this.userAuthService.getHello();
   // }
+
+
+  // @Post('/register') 
+  //   async register(@Body() UserDTO:UserDTO){
+  //     return this.userAuthService.register(UserDTO);
+  // }
+
+
   @Post('/register') 
-    async register(@Body() UserDTO:UserDTO){
-      return this.userAuthService.register(UserDTO);
+  async register(@Body() userDTO: UserDTO) {
+    try {
+      const result = await this.userAuthService.register({
+        firstName: userDTO.firstName,
+        lastName: userDTO.lastName,
+        username: userDTO.username,
+        email: userDTO.email,
+        password: userDTO.password,
+        phoneNum: userDTO.phoneNum,
+        wishlist: [],
+        address: [],
+        company: '',
+        resetPasswordToken: null,
+        registerToken: null,
+        reviews: [],
+      });
+      console.log(result);
+      return result;
+    } catch (error) {
+      return {
+        success: false,
+        message: `Failed to register user: ${(error as Error).message}`,
+      };
+    }
   }
+
+
   @Post('/login')
   async login(@Body() loginDto: LoginDto, @Req() req: Request, @Res() res: Response) {
       try {

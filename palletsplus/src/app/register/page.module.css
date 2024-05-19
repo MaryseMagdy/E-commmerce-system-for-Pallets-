@@ -1,12 +1,12 @@
 .register-page-container {
-  width: 100%;
-  display: flex;
-  min-height: 100vh;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
+  background-image: url("/tq_az7ku4h-wq-asb8-1500w.png");
   background-size: cover;
-  background-image: url('/tq_az7ku4h-wq-asb8-1500w.png');
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6rem;
+  min-height: 100vh;
 }
 
 .register-page-register-page {
@@ -37,7 +37,6 @@
   text-align: center;
   margin-bottom: 30px;
 }
-
 .register-page-text04,
 .register-page-text06,
 .register-page-text08 {
@@ -70,6 +69,8 @@
   cursor: pointer;
   border: none;
   margin-top: 20px;
+  color: rgba(101, 101, 101, 1);
+
 }
 
 .register-page-text12 {

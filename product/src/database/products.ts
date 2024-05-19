@@ -4,7 +4,7 @@ import  {ProductSchema}  from '../schemas/product.schema';
 
 export const productsprovider = [
   {
-    provide: 'products_Model',
+    provide: 'product_Model',
     useFactory: (connection: Connection) => connection.model('product', ProductSchema),
     inject: ['DATABASE_CONNECTION'],
   },
