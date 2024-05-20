@@ -1,4 +1,4 @@
-import { Document, Types } from 'mongoose';
+import mongoose, { ObjectId, mongo } from "mongoose";
 export interface Product extends Document {
   image: string;
   name: string;

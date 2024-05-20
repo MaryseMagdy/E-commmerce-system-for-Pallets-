@@ -1,7 +1,7 @@
 import { first } from 'rxjs/operators';
 
 export class productDTO {
-  readonly image: string | null;
+  readonly image: string;
   readonly name: string;
   readonly price: number;
   readonly rating: number;
@@ -13,7 +13,7 @@ export class productDTO {
   readonly customized: boolean;
   readonly ratings: number[];
 
-  constructor(image: string | null, name: string, price: number, rating: number, description: string, availability: boolean, color: string, material: string, size: number, customized: boolean, ratings: number[]) {
+  constructor(image: string, name: string, price: number, rating: number, description: string, availability: boolean, color: string, material: string, size: number, customized: boolean, ratings: number[]) {
     this.image = image;
     this.name = name;
     this.price = price;

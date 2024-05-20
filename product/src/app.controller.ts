@@ -25,18 +25,18 @@ async getProductById(@Param('id') id: string) {
     return this.ProductService.createProduct(productData);
   }
 
-@Get('/getAllProducts')
-async getAllProducts(): Promise<Product[]> {
-  try {
-    const products = await this.ProductService.getAllProducts(); // Call getAllProducts from ProductService
-    if (!products || products.length === 0) {
-      throw new NotFoundException('No products found');
+  @Get('/') // Adjust the endpoint as per your setup
+  async getAllProducts(): Promise<productDTO[]> {
+    try {
+      const products = await this.ProductService.getAllProducts();
+      if (!products || products.length === 0) {
+        throw new NotFoundException('No products found');
+      }
+      return products;
+    } catch (error) {
+      throw new NotFoundException('Failed to fetch products: ' + (error as Error).message);
     }
-    return products;
-  } catch (error) {
-    throw new NotFoundException('Failed to fetch products: ' +  (error as Error).message);
   }
-}
 
 @Put(':productId/customize')
   async customizeProduct(

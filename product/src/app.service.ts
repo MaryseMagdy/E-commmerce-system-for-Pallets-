@@ -28,6 +28,14 @@ export class ProductService {
     };
   }
 
+  async getAllProducts(): Promise<Product[]> {
+    try {
+      return await this.productModel.find();
+    } catch (error) {
+      throw new Error('Failed to fetch products: ' + (error as Error).message);
+    }
+  }
+  
   async createProduct(productDTO: productDTO) {
     try {
       const newProduct = new this.productModel(productDTO);
@@ -35,18 +43,6 @@ export class ProductService {
       return savedProduct.toObject();
     } catch (error) {
       throw new Error('Failed to create product: ' + (error as Error).message);
-    }
-  }
-
-  async getAllProducts(): Promise<Product[]> {
-    try {
-      const products = await this.productModel.find();
-      console.log(products, "sdfghjkl;yuuiuopio['");
-      const pr = products.map(product => product.toObject());
-      console.log(pr, "sdfghjkl;");
-      return (pr);
-    } catch (error) {
-      throw new Error('Failed to fetch products: ' + (error as Error).message);
     }
   }
   async customizeProduct(productId: string, customizationData: productDTO): Promise<Product> {

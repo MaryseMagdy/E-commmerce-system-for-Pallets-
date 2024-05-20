@@ -1,0 +1,231 @@
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.containerBase {
+  background-image: url("/tq_az7ku4h-wq-asb8-1500w.png");
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #f0f4f8;
+  border-radius: 10px;
+  margin-bottom: 0; /* Remove bottom margin */
+}
+
+.title {
+  font-size: 24px;
+  color: #0073fb;
+  margin: 0;
+}
+
+.navBar {
+  background: linear-gradient(180deg, rgba(0, 115, 251, 1) 19%, rgba(255, 255, 255, 1) 74%);
+  display: flex;
+  justify-content: space-between; /* Space between brand and links */
+  align-items: center; /* Center items vertically */
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  margin-bottom: 0; /* Remove bottom margin */
+}
+
+.navBrand {
+  font-weight: bold;
+  font-size: 24px;
+  color: #0073fb; /* You can adjust the color as needed */
+}
+
+.navLinks {
+  display: flex;
+  gap: 1rem; /* Space between nav items */
+}
+
+.navText {
+  color: rgba(0, 0, 0, 0.7); /* Adjusted color */
+  font-size: 18px;
+  font-family: Poppins, sans-serif;
+  font-weight: bold; /* Bold text */
+  text-decoration: none;
+}
+.heading {
+  font-size: 32px;
+  font-weight: bold;
+  text-align: center;
+  color: #0073fb;
+  margin-bottom: -1.3%; /* Remove bottom margin */
+  margin-top: -1.3%;
+  background-color: rgba(255, 255, 255);
+}
+.productDetail {
+  display: flex;
+  flex-wrap: nowrap; /* Prevent wrapping */
+  justify-content: space-between; /* Space between elements */
+  align-items: flex-start;
+  gap: 20px;
+  background-color: rgba(255, 255, 255, 0.9);
+  padding: 20px;
+  border-radius: 10px;
+  flex-direction: row; /* Ensure horizontal alignment */
+}
+
+.productImage {
+  flex: 0 1 50%; /* Allow the image to take up to 50% of the container */
+  max-width: 500px;
+  height: auto;
+  border-radius: 10px;
+  object-fit: contain;
+}
+
+.productInfo {
+  flex: 1 1 50%; /* Allow the info to take up the remaining space */
+  text-align: left;
+  max-width: 50%; /* Ensure the info takes up at most 50% */
+}
+
+.productName {
+  font-size: 24px;
+  font-weight: bold;
+  color: #0073fb;
+  margin-bottom: 10px;
+}
+
+.description {
+  background-color: rgba(240, 248, 255, 0.7);
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.sectionTitle {
+  font-size: 20px;
+  font-weight: bold;
+  color: #0073fb;
+  margin-bottom: 10px;
+}
+
+.sizesAndWeight {
+  display: flex;
+  justify-content: space-between;
+}
+
+.sectionTab {
+  cursor: pointer;
+  padding: 10px 20px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #0073fb;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 5px 5px 0 0;
+  border: 2px solid #0073fb;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.sectionTab:hover,
+.activeTab {
+  background-color: rgba(0, 115, 251, 0.1);
+}
+
+.sectionContent {
+  background-color: rgba(240, 248, 255, 0.7);
+  padding: 15px;
+  border-radius: 0 0 10px 10px;
+  border: 2px solid #0073fb;
+}
+
+.sizes,
+.weight {
+  flex: 1;
+  margin-right: 10px;
+}
+
+.subTitle {
+  font-size: 18px;
+  font-weight: bold;
+  color: #0073fb;
+  margin-bottom: 5px;
+}
+
+.list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list li {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 5px;
+  cursor: pointer;
+  padding: 5px;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  transition: background-color 0.3s, border-color 0.3s;
+}
+
+.list li:hover {
+  background-color: rgba(0, 115, 251, 0.1);
+}
+
+.sizeItem {
+  border: 2px solid transparent;
+  padding: 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin-bottom: 5px;
+  transition: all 0.3s ease;
+}
+
+.sizeItem:hover {
+  border-color: #0073fb;
+}
+
+.selectedSize {
+  border-color: #0073fb;
+  background-color: rgba(0, 115, 251, 0.1);
+}
+.actionButtons {
+  display: flex;
+  justify-content: flex-start; /* Align buttons to the start */
+  margin-top: 20px;
+  flex-wrap: wrap; /* Allow buttons to wrap within the container */
+  gap: 10px; /* Add space between buttons */
+}
+
+.button,
+.buttonCancel {
+  padding: 10px 20px;
+  font-size: 16px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 2px solid #0073fb;
+  background-color: #fff;
+  color: #0073fb;
+  transition: background-color 0.3s ease;
+  flex: 1 1 auto; /* Allow buttons to take up available space and wrap */
+  margin: 0; /* Remove extra margin */
+}
+
+.buttonCancel {
+  border-color: #e63946;
+  color: #e63946;
+}
+
+.button:hover {
+  background-color: #0073fb;
+  color: #fff;
+}
+
+.buttonCancel:hover {
+  background-color: #e63946;
+  color: #fff;
+}
