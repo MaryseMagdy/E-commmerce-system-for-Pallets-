@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Put, Param, Delete, HttpException, HttpStatus, Req, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Put, Param, Delete, HttpException, HttpStatus, Req, Res, UseGuards, UnauthorizedException } from '@nestjs/common';
 import { userAuthService } from './app.service';
 import { Response, Request } from 'express';
 import { UserDTO } from './dto/create.user.dto'; // Import the UserDTO type
@@ -8,6 +8,14 @@ import { ViewUserReview } from './dto/viewUserReview.dto';
 import mongoose from 'mongoose';
 import { Reviews } from './dto/Reviews.dto';
 import { LoginDto } from './dto/login.dto';
+import { JwtAuthGuard } from './strategies/jwt-auth.guard';
+
+interface JwtPayload {
+  userId: string;
+  username: string;
+  iat?: number;
+  exp?: number;
+}
 
 @Controller('user')
 export class userAuthController {
@@ -23,7 +31,23 @@ export class userAuthController {
   //   async register(@Body() UserDTO:UserDTO){
   //     return this.userAuthService.register(UserDTO);
   // }
-
+  
+  @Post('/rateProduct')
+  async rateProduct(
+      @Req() req: Request,
+      @Body('productId') productId: string,
+      @Body('rating') rating: number,
+  ) {
+      const user = req.user as JwtPayload;
+      if (!user || !user.userId) {
+          throw new UnauthorizedException('User not authenticated');
+      }
+      const userId = user.userId;
+      console.log('Received request to rate product with:', { userId, productId, rating }); // Add logging here
+      await this.userAuthService.rateProduct(userId, productId, rating);
+      return { success: true, message: 'Product rated successfully' };
+  }
+  
 
   @Post('/register') 
   async register(@Body() userDTO: UserDTO) {

@@ -14,14 +14,49 @@ import { EmailService } from './email.service';
 import * as crypto from 'crypto';
 import { MessagePattern } from '@nestjs/microservices';
 import { Reviews } from './dto/Reviews.dto';
+import { Kafka } from 'kafkajs';
 
 @Injectable()
-export class userAuthService {     
-    constructor(
-        @Inject('userAuth_MODEL') private userAuthModel: Model<userAuth>,
-        private jwtService: JwtService,
-        private emailService: EmailService
-    ) {}
+export class userAuthService {   
+  private kafka: Kafka;
+  private producer;
+  private consumer;  
+
+  constructor(
+    @Inject('userAuth_MODEL') // Ensure the injection token is correct
+    private readonly userAuthModel: Model<userAuth>,
+    private readonly jwtService: JwtService,
+    private readonly emailService: EmailService,
+  ) {
+    this.kafka = new Kafka({
+      clientId: 'user-auth',
+      brokers: ['localhost:9092']
+    });
+    this.producer = this.kafka.producer();
+    this.consumer = this.kafka.consumer({ groupId: 'user-auth-group' });
+  }
+
+  async onModuleInit() {
+    await this.producer.connect();
+    await this.consumer.connect();
+  }
+
+  async onModuleDestroy() {
+    await this.producer.disconnect();
+    await this.consumer.disconnect();
+  }
+
+  async rateProduct(userId: string, productId: string, rating: number) {
+    console.log('Sending message with:', { userId, productId, rating }); // Add logging here
+    await this.producer.send({
+        topic: 'product-rating',
+        messages: [
+            { value: JSON.stringify({ userId, productId, rating }) }, // Ensure 'rating' key is used
+        ],
+    });
+}
+
+
 
     async register(userDTO: UserDTO) {
         try {
@@ -44,29 +79,29 @@ export class userAuthService {
             let loginResult = await this.userAuthModel.findOne({
                 username: loginDto.username
             });
-
+    
             if (loginResult === null) {
                 res.status(401).json({ success: false, message: "User not found or password incorrect" });
                 return;
             }
-
+    
             let jsonData = loginResult.toObject();
             let { _id, ...userData } = jsonData;
-
+    
             let payload = {
                 sub: _id,
                 username: userData.username
             };
-
+    
             var token = this.jwtService.sign(payload);
-
+    
             res.cookie('jwt', token, {
                 httpOnly: true,
                 secure: false, 
                 path: '/',
                 maxAge: 3 * 60 * 60 * 1000 // should match the token expiry
             });
-
+    
             res.json({
                 success: true,
                 access_token: token,
@@ -74,7 +109,7 @@ export class userAuthService {
                 id: _id,
                 ...userData
             });
-
+    
         } catch (error) {
             console.error(error);
             res.status(500).json({
@@ -82,8 +117,7 @@ export class userAuthService {
                 message: (error as Error).message
             });
         }
-    }
-        
+    }  
 async validateUser(loginDto: LoginDto): Promise<{ user?: any, token?: string }> {
     const user = await this.userAuthModel.findOne({
         username: loginDto.username,

@@ -1,0 +1,98 @@
+.containerBase {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f5f5f5;
+}
+
+.container {
+    width: 80%;
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.navBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.navBrand {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #333;
+    text-decoration: none;
+}
+
+.navLinks {
+    display: flex;
+    gap: 20px;
+}
+
+.navText {
+    color: #333;
+    text-decoration: none;
+    font-size: 1em;
+}
+
+.heading {
+    font-size: 2em;
+    margin-bottom: 20px;
+    color: #0070f3;
+}
+
+.rentContent {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.datePicker {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.productImageContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.productImage {
+    width: 300px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.productName {
+    font-size: 1.2em;
+    color: #333;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 20px;
+}
+
+.button,
+.buttonCancel {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.button {
+    background-color: #0070f3;
+    color: #fff;
+}
+
+.buttonCancel {
+    background-color: #ccc;
+    color: #333;
+}

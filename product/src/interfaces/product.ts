@@ -8,7 +8,9 @@ export interface Product extends Document {
   availability: boolean;
   color: string;
   material: string;
-  size: number;
+  width: number;
+  height: number;
+  quantity: number;
   customized: boolean;
   ratings: number[];
 }

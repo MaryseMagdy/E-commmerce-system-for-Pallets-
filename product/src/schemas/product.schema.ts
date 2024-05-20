@@ -33,7 +33,11 @@ const productSchema: Schema = new Schema({
     type: String,
     required: true
   },
-  size: {
+  width: {
+    type: Number,
+    required: true
+  },
+  height:{
     type: Number,
     required: true
   },
@@ -43,7 +47,13 @@ const productSchema: Schema = new Schema({
   },
   ratings: {
     type: [Number],
-    default: []
+    default: [],
+    validate: {
+      validator: function (v: number[]) {
+        return Array.isArray(v);
+      },
+      message: props => `${props.value} is not a valid array of numbers!`
+    }
   }
 });
 

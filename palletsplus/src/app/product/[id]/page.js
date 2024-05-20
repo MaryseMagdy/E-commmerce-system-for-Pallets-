@@ -6,11 +6,11 @@ import styles from './page.module.css';
 export const generateMetadata = async ({ params }) => {
     const title = await new Promise((resolve) => {
         setTimeout(() => {
-            resolve(`iPhone ${params.id}`);
+            resolve(``);
         }, 100);
     });
     return {
-        title: `Product ${title}`,
+        title: `Product Details ${title}`,
     };
 };
 
