@@ -75,7 +75,7 @@ const ProductDetail = ({ productId }) => {
                             <a href="/home" className={styles.navBrand}>PalletsPlus</a>
                             <div className={styles.navLinks}>
                                 <a href="/products" className={styles.navText}>Products</a>
-                                <a href="/profile" className={styles.navText}>Profile</a>
+                                <a href={`/profile/${sessionStorage.getItem('userId')}`} className={styles.navText}>Profile</a>
                                 <a href="/cart" className={styles.navText}>Your Cart</a>
                             </div>
                         </div>

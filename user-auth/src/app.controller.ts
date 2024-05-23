@@ -65,7 +65,11 @@ export class userAuthController {
     const response = await this.userAuthService.removeFromWishlist(addToWishlistDTO.userId, addToWishlistDTO.productId);
     return response;
   }
-
+  @Post('/logout')
+  async logout(@Req() req: Request, @Res() res: Response) {
+    const response = await this.userAuthService.logout(req, res);
+    res.status(HttpStatus.OK).json(response);
+  }
   @Post('/register') 
   async register(@Body() userDTO: UserDTO) {
     try {

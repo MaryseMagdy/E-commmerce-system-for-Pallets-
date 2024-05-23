@@ -114,6 +114,7 @@ export class userAuthService {
       return { success: false, message: (error as Error).message };
     }
   }
+
   async removeFromWishlist(userId: string, productId: string): Promise<any> {
     try {
       const user = await this.userAuthModel.findById(userId);
@@ -169,6 +170,14 @@ async rateProduct(userId: string, productId: string, rating: number) {
 }
 
 
+  async logout(req: Request, res: Response) {
+    try {
+      res.clearCookie('jwt'); // Clear the JWT cookie
+      return { success: true, message: 'Logged out successfully' };
+    } catch (error) {
+      throw new HttpException('Logout failed', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
     async register(userDTO: UserDTO) {
         try {
             const newUser = await this.userAuthModel.create(userDTO);
