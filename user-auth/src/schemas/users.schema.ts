@@ -87,10 +87,18 @@ const userAuthSchema: Schema = new Schema({
     type: [ReviewSchema],
     required: false
   },
-  wishlist: {
-    type: [String],
-    required: false
-  },
+  wishlist: [{
+    _id:String,
+    name: String,
+    price: Number,
+    description: String,
+    color: String,
+    material: String,
+    image: String,
+    width: Number,
+    height: Number,
+    rating: Number,
+  }],
   resetPasswordToken:{
     type: String,
     default: null 

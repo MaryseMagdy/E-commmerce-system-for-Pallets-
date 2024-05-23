@@ -1,4 +1,5 @@
-'use client'
+// src/app/product/[productId]/ProductDetail.js
+'use client';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './ProductDetail.module.css';
@@ -50,12 +51,17 @@ const ProductDetail = ({ productId }) => {
     };
 
     const handleRentClick = () => {
-        router.push(`/rent`);
+        router.push(`/rent?productId=${productId}`);
     };
 
     const handleCloseCustomizeForm = () => {
         setShowCustomizeForm(false);
         setRefresh((prev) => !prev); // Trigger a refresh
+    };
+
+    const handleShareClick = () => {
+        // Implement share functionality here
+        alert('Share button clicked!');
     };
 
     return (
@@ -78,8 +84,11 @@ const ProductDetail = ({ productId }) => {
                             <img src={product.image} alt={product.name} className={styles.productImage} />
                             <div className={styles.productInfo}>
                                 <div className={styles.description}>
-                                    <h3 className={styles.sectionTitle}>Description</h3>
-                                    <p style={{ color: 'gray', fontSize: '1.4vw' }}>{product.description}</p>
+                                    <div className={styles.descriptionHeader}>
+                                        <h3 className={styles.sectionTitle}>Description</h3>
+                                        <button className={styles.shareButton} onClick={handleShareClick}>Share</button>
+                                    </div>
+                                    <p className={styles.productDescription}>{product.description}</p>
                                     <div className={styles.sizesAndWeight}>
                                         <div
                                             className={`${styles.sectionTab} ${activeSection === 'details' ? styles.activeTab : ''}`}

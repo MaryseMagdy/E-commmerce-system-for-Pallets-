@@ -17,7 +17,7 @@ const RegisterPage = (props) => {
   const handleRegister = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://localhost:8000/user/register', {
+      const response = await fetch('http://localhost:8001/user/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

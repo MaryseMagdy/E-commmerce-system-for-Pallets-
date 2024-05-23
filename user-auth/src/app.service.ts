@@ -15,6 +15,7 @@ import * as crypto from 'crypto';
 import { MessagePattern } from '@nestjs/microservices';
 import { Reviews } from './dto/Reviews.dto';
 import { Kafka } from 'kafkajs';
+import { AddToWishlistDTO } from './dto/addToWishlist.dto';
 
 @Injectable()
 export class userAuthService {   
@@ -39,6 +40,7 @@ export class userAuthService {
   async onModuleInit() {
     await this.producer.connect();
     await this.consumer.connect();
+    this.startConsumer();
   }
 
   async onModuleDestroy() {
@@ -46,7 +48,117 @@ export class userAuthService {
     await this.consumer.disconnect();
   }
 
-  async rateProduct(userId: string, productId: string, rating: number) {
+  async startConsumer() {
+    await this.consumer.subscribe({ topic: 'product-details-response' });
+    await this.consumer.run({
+      eachMessage: async ({ topic, partition, message }) => {
+        const data = JSON.parse(message.value.toString());
+        if (topic === 'product-details-response') {
+            console.log('Received product details from Kafka:', data);
+            await this.addToWishlistConsumer(data);
+        }
+      }
+    });
+  }
+
+  async getProductDetailsFromKafka(userId: string, productId: string) {
+    await this.producer.send({
+      topic: 'get-product-details',
+      messages: [{ value: JSON.stringify({ userId, productId }) }]
+    });
+
+    return new Promise((resolve, reject) => {
+        this.consumer.run({
+            eachMessage: async ({ topic, partition, message }) => {
+                const data = JSON.parse(message.value.toString());
+                if (data._id === productId && data.userId === userId) {
+                    resolve(data);
+                }
+            }
+        });
+    });
+  }
+  async addToWishlistConsumer(productDetails: any) {
+    try {
+      const userId = productDetails.userId;
+      const user = await this.userAuthModel.findById(userId);
+      if (!user) {
+        console.log('User not found');
+        return;
+      }
+  
+      console.log(productDetails._id, "productDetails._id");
+      console.log(user.wishlist, "user.wishlist");
+  
+      if (user.wishlist.some(product => product && product._id && product._id.toString() === productDetails._id.toString())) {
+        console.log('Product already in wishlist');
+        return;
+      }
+  
+      user.wishlist.push(productDetails);
+      await user.save();
+  
+      console.log('Product added to wishlist successfully');
+    } catch (error) {
+      console.error('Error adding product to wishlist:', error);
+    }
+  }
+  async getWishlist(userId: string): Promise<any> {
+    try {
+      const user = await this.userAuthModel.findById(userId);
+      if (!user) {
+        return { success: false, message: 'User not found' };
+      }
+      return { success: true, wishlist: user.wishlist };
+    } catch (error) {
+      return { success: false, message: (error as Error).message };
+    }
+  }
+  async removeFromWishlist(userId: string, productId: string): Promise<any> {
+    try {
+      const user = await this.userAuthModel.findById(userId);
+      if (!user) {
+        return { success: false, message: 'User not found' };
+      }
+
+      const initialWishlistLength = user.wishlist.length;
+      user.wishlist = user.wishlist.filter(product => product._id.toString() !== productId);
+
+      if (user.wishlist.length === initialWishlistLength) {
+        return { success: false, message: 'Product not found in wishlist' };
+      }
+
+      await user.save();
+
+      return { success: true, message: 'Product removed from wishlist successfully' };
+    } catch (error) {
+      return { success: false, message: (error as Error).message };
+    }
+  }
+  async addToWishlist(addToWishlistDTO: AddToWishlistDTO): Promise<any> {
+    const { userId, productId } = addToWishlistDTO;
+  
+    try {
+      const productDetails: any = await this.getProductDetailsFromKafka(userId, productId);
+  
+      const user = await this.userAuthModel.findById(userId);
+      if (!user) {
+        return { success: false, message: 'User not found' };
+      }
+  
+    //   if (user.wishlist.some(product => product && product._id && product._id.toString() === productDetails._id.toString())) {
+    //     return { success: false, message: 'Product already in wishlist' };
+    //   }
+  
+      user.wishlist.push(productDetails);
+      await user.save();
+  
+      return { success: true, message: 'Product added to wishlist successfully' };
+    } catch (error) {
+      return { success: false, message: (error as Error).message };
+    }
+  }
+async rateProduct(userId: string, productId: string, rating: number) {
     console.log('Sending message with:', { userId, productId, rating }); // Add logging here
     await this.producer.send({
         topic: 'product-rating',
@@ -55,7 +167,6 @@ export class userAuthService {
         ],
     });
 }
-
 
 
     async register(userDTO: UserDTO) {
@@ -242,14 +353,14 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
             }
     
             // Generate reset password token
-            const resetPasswordToken = this.generateSecureToken();
+            const resetPasswordToken = this.generateSecurePIN();
     
             // Save the reset password token in the user document
             user.resetPasswordToken = resetPasswordToken;
             await user.save();
     
             // Construct reset password link
-            const resetPasswordLink = `http://localhost:3000/forget-password/${resetPasswordToken}`;
+            const resetPasswordLink = `http://localhost:8001/forget-password/${resetPasswordToken}`;
     
             // Send reset password email with the reset password link
             await this.emailService.sendResetPasswordEmail(email, resetPasswordLink);
@@ -368,6 +479,9 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
     private generateSecureToken(): string {
         return crypto.randomBytes(20).toString('hex');
     }
+    private generateSecurePIN(): string {
+        return Math.floor(100000 + Math.random() * 900000).toString(); // Generates a 6-digit PIN
+    }
 
     async editUserAddress(userId: string, addressIndex: number, addressDto: AddressDto) {
         try {
@@ -381,7 +495,6 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
                 throw new Error("Address not found");
             }
     
-            // Update the address with new data
             const address = user.address[addressIndex];
             address.label = addressDto.label ?? address.label;
             address.street = addressDto.street ?? address.street;
@@ -395,6 +508,7 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
             return { success: false, message: (error as Error).message };
         }
     }
+  
 
   // -------------AMR-----------------------------
 
@@ -476,6 +590,28 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
         await user.save();
         return review;
     }
-
+    async getUserById(userId: string) {
+        try {
+          const user = await this.userAuthModel.findById(userId);
+          if (!user) {
+            throw new Error('User not found');
+          }
+    
+          const userDto = new userInfoDTO(
+            // user.id,
+            user.firstName,
+            user.lastName,
+            user.username,
+            user.email,
+            user.phoneNum,
+            user.company,
+            // user.address
+          );
+    
+          return { success: true, user: userDto };
+        } catch (error) {
+            return { success: false, message: (error as Error).message };
+        }
+      }
 
 }

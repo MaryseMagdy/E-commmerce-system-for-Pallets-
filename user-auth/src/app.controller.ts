@@ -9,6 +9,8 @@ import mongoose from 'mongoose';
 import { Reviews } from './dto/Reviews.dto';
 import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './strategies/jwt-auth.guard';
+import { NotFoundException } from '@nestjs/common';
+import { AddToWishlistDTO } from './dto/addToWishlist.dto';
 
 interface JwtPayload {
   userId: string;
@@ -48,6 +50,21 @@ export class userAuthController {
       return { success: true, message: 'Product rated successfully' };
   }
   
+  @Post('wishlist/add')
+  async addToWishlist(@Body() addToWishlistDTO: AddToWishlistDTO) {
+    const response = await this.userAuthService.addToWishlist(addToWishlistDTO);
+    return response;
+  }
+  @Get('wishlist/:userId')
+  async getWishlist(@Param('userId') userId: string) {
+    const response = await this.userAuthService.getWishlist(userId);
+    return response;
+  }
+  @Post('wishlist/remove')
+  async removeFromWishlist(@Body() addToWishlistDTO: AddToWishlistDTO) {
+    const response = await this.userAuthService.removeFromWishlist(addToWishlistDTO.userId, addToWishlistDTO.productId);
+    return response;
+  }
 
   @Post('/register') 
   async register(@Body() userDTO: UserDTO) {
@@ -178,6 +195,18 @@ export class userAuthController {
         return { success: true, message: 'Address updated successfully', address: result.address };
     } catch (error) {
         throw new HttpException(Error, HttpStatus.BAD_REQUEST);
+    }
+  }
+  @Get(':id')
+  async getUserById(@Param('id') id: string) {
+    try {
+      const user = await this.userAuthService.getUserById(id);
+      if (!user) {
+        throw new NotFoundException('User not found');
+      }
+      return user;
+    } catch (error) {
+      throw new NotFoundException('User not found: ' + (error as Error).message);
     }
   }
 

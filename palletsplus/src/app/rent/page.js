@@ -1,68 +1,122 @@
-'use client'
-import React, { useState } from 'react';
-import { useRouter } from 'next/navigation';
+// src/app/rent/page.js
+'use client';
+import React, { useEffect, useState } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import Head from 'next/head';
 import styles from './page.module.css';
 
-const Rent = ({ productId }) => {
+const RentPage = () => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
+    const [product, setProduct] = useState(null);
+    const searchParams = useSearchParams();
+    const productId = searchParams.get('productId');
     const router = useRouter();
 
-    const handleOrder = () => {
-        // Add the logic to handle the order submission
-        console.log(`Ordering product ${productId} from ${startDate} to ${endDate}`);
-        // Redirect to a confirmation page or handle the order logic
+    const fetchProduct = async () => {
+        try {
+            const response = await fetch(`http://localhost:8000/product/${productId}`);
+            if (!response.ok) {
+                throw new Error('Failed to fetch product');
+            }
+            const data = await response.json();
+            setProduct(data);
+        } catch (error) {
+            console.error('Error fetching product:', error);
+        }
     };
 
-    const handleCancelClick = () => {
-        router.back();
+    useEffect(() => {
+        if (productId) {
+            fetchProduct();
+        }
+    }, [productId]);
+
+    const handleCancel = () => {
+        router.push(`/product/${productId}`);
     };
+
+    const handleOrder = async () => {
+        try {
+            const response = await fetch(`http://localhost:8000/product/rent/${productId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    rentStartDate: startDate,
+                    rentEndDate: endDate,
+                }),
+            });
+            if (!response.ok) {
+                throw new Error('Failed to place rent order');
+            }
+            const data = await response.json();
+            console.log('Rent order placed:', data);
+            // Optionally redirect or update UI after order is placed
+            router.push('/products'); // Redirect to products page after placing order
+        } catch (error) {
+            console.error('Error placing rent order:', error);
+        }
+    };
+
+    if (!product) {
+        return <div>Loading...</div>;
+    }
 
     return (
-        <div className={styles.containerBase}>
-            <div className={styles.container}>
-                <div className={styles.navBar}>
-                    <a href="/home" className={styles.navBrand}>PalletsPlus</a>
-                    <div className={styles.navLinks}>
-                        <a href="/products" className={styles.navText}>Products</a>
-                        <a href="/profile" className={styles.navText}>Profile</a>
-                        <a href="/cart" className={styles.navText}>Your Cart</a>
+        <>
+            <Head>
+                <title>Set Rent Dates - PalletsPlus</title>
+            </Head>
+            <div className={styles.background}></div>
+            <div className={styles.containerBase}>
+                <div className={styles.container}>
+                    <div className={styles.navBar}>
+                        <a href="/home" className={styles.navBrand}>PalletsPlus</a>
+                        <div className={styles.navLinks}>
+                            <a href="/products" className={styles.navText}>Products</a>
+                            <a href="/profile" className={styles.navText}>Profile</a>
+                            <a href="/cart" className={styles.navText}>Your Cart</a>
+                        </div>
                     </div>
-                </div>
-                <h1 className={styles.heading}>Set Rent Dates</h1>
-                <div className={styles.rentContent}>
-                    <div className={styles.datePicker}>
-                        <label>
-                            Start Date:
-                            <input
-                                type="date"
-                                value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
-                                required
-                            />
-                        </label>
-                        <label>
-                            End Date:
-                            <input
-                                type="date"
-                                value={endDate}
-                                onChange={(e) => setEndDate(e.target.value)}
-                                required
-                            />
-                        </label>
+                    <h1 className={styles.heading}>Set Rent Dates</h1>
+                    <div className={styles.content}>
+                        <div className={styles.productInfo}>
+                            <img src={product.image} alt={product.name} className={styles.productImage} />
+                            <span className={styles.productName}>{product.name}</span>
+                        </div>
+                        <div className={styles.datePickerContainer}>
+                            <div className={styles.dateInputWrapper}>
+                                <label className={styles.dateLabel}>Start Date</label>
+                                <input
+                                    type="date"
+                                    value={startDate}
+                                    onChange={(e) => setStartDate(e.target.value)}
+                                    className={`${styles.dateInput} ${styles.largeDateInput}`}
+                                    placeholder="Start Date"
+                                />
+                            </div>
+                            <div className={styles.dateInputWrapper}>
+                                <label className={styles.dateLabel}>End Date</label>
+                                <input
+                                    type="date"
+                                    value={endDate}
+                                    onChange={(e) => setEndDate(e.target.value)}
+                                    className={`${styles.dateInput} ${styles.largeDateInput}`}
+                                    placeholder="End Date"
+                                />
+                            </div>
+                        </div>
                     </div>
-                    <div className={styles.productImageContainer}>
-                        <img src="/path/to/image.jpg" alt="Product Image" className={styles.productImage} />
-                        <p className={styles.productName}>Heavy Duty Pallet - 3 skid</p>
-                    </div>
-                    <div className={styles.actionButtons}>
-                        <button className={styles.buttonCancel} onClick={handleCancelClick}>Cancel</button>
-                        <button className={styles.button} onClick={handleOrder}>Order</button>
+                    <div className={styles.buttons}>
+                        <button className={styles.cancelButton} onClick={handleCancel}>CANCEL</button>
+                        <button className={styles.orderButton} onClick={handleOrder}>RENT</button>
                     </div>
                 </div>
             </div>
-        </div>
+        </>
     );
 };
 
-export default Rent;
+export default RentPage;

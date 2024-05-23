@@ -1,0 +1,91 @@
+/* src/components/NavBar.module.css */
+.nav-bar {
+    top: 36px;
+    left: 42px;
+    width: 1183px;
+    height: 81.0992431640625px;
+    display: flex;
+    position: absolute;
+    align-items: flex-start;
+    flex-shrink: 1;
+}
+
+.rectangle1 {
+    top: 0px;
+    left: 13px;
+    width: 1170px;
+    height: 81px;
+    position: absolute;
+    border-radius: 50px 50px 10px 10px;
+}
+
+.line6 {
+    top: 30px;
+    left: 994.9775390625px;
+    width: 18px;
+    height: 1px;
+    position: absolute;
+}
+
+.text, .text02, .text04 {
+    background: none;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    font-size: 18px;
+    font-family: Poppins, sans-serif;
+    font-weight: 400;
+    line-height: normal;
+    text-decoration: none;
+    color: rgba(0, 0, 0, 0.46000000834465027);
+    text-align: left;
+    position: absolute;
+}
+
+.text {
+    top: 25px;
+    left: 930.5927734375px;
+    width: 55px;
+}
+
+.text02 {
+    top: 25px;
+    left: 829px;
+    width: 80px;
+}
+
+.line7 {
+    top: 30px;
+    left: 917.5205078125px;
+    width: 18px;
+    height: 1px;
+    position: absolute;
+}
+
+.text04 {
+    top: 25px;
+    left: 1033.212158203125px;
+    width: 92px;
+}
+
+.mdicart {
+    top: 28px;
+    left: 1006.0439453125px;
+    width: 21px;
+    height: 20px;
+    position: absolute;
+}
+
+.text06 {
+    top: 22px;
+    color: rgba(16, 44, 191, 1);
+    width: 286px;
+    height: auto;
+    position: absolute;
+    font-size: 38px;
+    font-weight: 600;
+    text-align: center;
+    font-family: Poppins, sans-serif;
+    line-height: 17px;
+    text-decoration: none;
+}

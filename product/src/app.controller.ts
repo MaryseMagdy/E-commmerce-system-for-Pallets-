@@ -3,6 +3,7 @@ import { ProductService } from './app.service';
 import { Product } from '../src/interfaces/product';
 import { productDTO } from './dto/product.dto';
 import { customizeDTO } from './dto/customize.dto';
+import { rentDTO } from './dto/rent.dto';
 
 @Controller('product')
 export class ProductController {
@@ -50,28 +51,45 @@ async getProductById(@Param('id') id: string) {
           console.error('Error customizing product:', error);
           return { success: false, message: (error as Error).message };
       }
+  } 
+
+  @Post('rent/:productId')
+  async rentOrder(
+    @Param('productId') productId: string,
+    @Body() rentOrderDTO: rentDTO
+  ) {
+    try {
+      const product = await this.ProductService.rentOrder(productId, rentOrderDTO);
+      return { success: true, product };
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to place rent order: ' + (error as Error).message);
+    }
   }
-  
+  // @Post('/search')
+  // async searchProduct(@Body() body: { query: string }): Promise<Product[]> {
+  //     try {
+  //         const { query } = body;
+  //         if (!query || query.length < 1) {
+  //             throw new BadRequestException('Query must be at least one character in the request body');
+  //         }
+
+  //         const products = await this.ProductService.searchProducts(query);
+  //         if (!products || products.length === 0) {
+  //             throw new NotFoundException('No products found matching the search query');
+  //         }
+  //         return products;
+  //     } catch (error) {
+  //         throw new NotFoundException('Failed to fetch products: ' + (error as Error).message);
+  //     }
+  // }
   @Post('/search')
-async searchProduct(@Body() body: { letter: string }): Promise<Product[]> {
-  try {
-    const { letter } = body;
-    if (!letter || letter.length !== 1) {
-      throw new BadRequestException('Query must be a single letter in the request body');
+  async searchProduct(@Body() body: { query: string }): Promise<Product[]> {
+    const { query } = body;
+    if (!query || query.length < 1) {
+        throw new BadRequestException('Query must be at least one character in the request body');
     }
 
-    // Create an object with the 'letter' property
-    const queryObject = { letter }; // or { letter: letter }
-
-    // Pass the object to the service method
-    const products = await this.ProductService.searchProducts(queryObject);
-    if (!products || products.length === 0) {
-      throw new NotFoundException('No products found matching the search query');
-    }
+    const products = await this.ProductService.searchProducts(query);
     return products;
-  } catch (error) {
-    throw new NotFoundException('Failed to fetch products: ' + (error as Error).message);
-  }
 }
-
 }

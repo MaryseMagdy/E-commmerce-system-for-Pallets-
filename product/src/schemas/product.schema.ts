@@ -13,6 +13,15 @@ const productSchema: Schema = new Schema({
     type: Number,
     required: true
   },
+  dailyRate: {
+    type: Number,
+    required: false
+  },
+  deposit: {
+    type: Number,
+    required: false,
+    default: 50
+  },
   rating: {
     type: Number,
     required: true
@@ -54,6 +63,18 @@ const productSchema: Schema = new Schema({
       },
       message: props => `${props.value} is not a valid array of numbers!`
     }
+  },
+  rentStartDate:{
+    type: Date,
+    required: false,
+  },
+  rentEndDate:{
+    type: Date,
+    required: false,
+  },
+  totalRentalPrice: {
+    type: Number,
+    required: false
   }
 });
 

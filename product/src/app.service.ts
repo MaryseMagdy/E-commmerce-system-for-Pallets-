@@ -1,18 +1,18 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, NotFoundException, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { Model } from 'mongoose';
 import { Product } from './interfaces/product';
-import { Kafka } from 'kafkajs';
 import { productDTO } from './dto/product.dto';
-import { Body, BadRequestException, NotFoundException } from '@nestjs/common';
+import { Body, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { customizeDTO } from './dto/customize.dto';
-
+import { rentDTO } from './dto/rent.dto';
+import { Kafka } from 'kafkajs';
 
 @Injectable()
-export class ProductService {
+export class ProductService implements OnModuleInit, OnModuleDestroy {
   private kafka: Kafka;
   private producer;
   private consumer;
-  
+
   constructor(
     @Inject('product_Model') // Ensure the injection token is correct
     private readonly productModel: Model<Product>,
@@ -28,6 +28,8 @@ export class ProductService {
   async onModuleInit() {
     await this.producer.connect();
     await this.consumer.connect();
+    await this.subscribeToTopics();
+    await this.startConsumer();
   }
 
   async onModuleDestroy() {
@@ -35,69 +37,139 @@ export class ProductService {
     await this.consumer.disconnect();
   }
 
-  async startConsumer() {
+  private async subscribeToTopics() {
     await this.consumer.subscribe({ topic: 'product-rating' });
-  
+    await this.consumer.subscribe({ topic: 'get-product-details' });
+  }
+
+  async startConsumer() {
     await this.consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
-          const messageValue = message.value.toString();
-          console.log('Raw message:', messageValue); // Log raw message
-          try {
-              const parsedMessage = JSON.parse(messageValue);
-              console.log('Parsed message:', parsedMessage); // Log parsed message
-              const { productId, rating } = parsedMessage;
-              console.log('Extracted rating:', rating); // Log extracted rating
-              if (topic === 'product-rating') {
-                  await this.rateProduct(productId, rating);
-                  console.log('Product rated', parsedMessage);
-              }
-          } catch (error) {
-              console.error('Error parsing message:', error);
+        const messageValue = message.value.toString();
+        console.log('Raw message:', messageValue); // Log raw message
+        try {
+          const parsedMessage = JSON.parse(messageValue);
+          const { userId, productId, rating } = parsedMessage;
+          if (topic === 'product-rating') {
+            await this.rateProduct(productId, rating);
           }
+          if (topic === 'get-product-details') {
+            const product = await this.productModel.findById(productId).lean();
+            if (!product) {
+              return;
+            }
+            const productDetails = {
+              _id: product._id,
+              name: product.name,
+              price: product.price,
+              description: product.description,
+              color: product.color,
+              material: product.material,
+              image: product.image,
+              width: product.width,
+              height: product.height,
+              rating: product.rating,
+              userId: userId, // Include userId to identify the user
+            };
+            console.log('Product details:', productDetails); // Log product details
+            await this.producer.send({
+              topic: 'product-details-response',
+              messages: [{ value: JSON.stringify(productDetails) }],
+            });
+          }
+        } catch (error) {
+          console.error('Error parsing message:', error);
+        }
       },
-  });
-}
-  async rateProduct(productId: string, rating: number) {
-      console.log('Rating:', rating); // Log the rating value
-      const product = await this.productModel.findById(productId);
-      if (!product) {
-          throw new Error('Product not found');
-      }
-      if (typeof rating !== 'number' || rating < 1 || rating > 5) {
-          throw new Error('Invalid rating. Rating must be a number between 1 and 5.');
-      }
-  
-      product.ratings.push(rating);
-      console.log('Product ratings:', product.ratings);
-  
-      // Calculate the new average rating
-      const totalRatings = product.ratings.reduce((sum, rate) => sum + rate, 0);
-      const averageRating = totalRatings / product.ratings.length;
-      product.rating = averageRating;
-  
-      await product.save();
-      console.log('Product rated', product);
-      return product;
+    });
   }
-    
-  
 
-  async getProductById(id: string) {
-    let productinfo = await this.productModel.findById(id);
-    console.log(productinfo?.toObject());
-    console.log(productinfo, "asdftyguh");
-
-    if (!productinfo) {
-      return null; // or throw NotFoundException
+  async rateProduct(productId: string, rating: number) {
+    const product = await this.productModel.findById(productId);
+    if (!product) {
+      throw new Error('Product not found');
+    }
+    if (typeof rating !== 'number' || rating < 1 || rating > 5) {
+      throw new Error('Invalid rating. Rating must be a number between 1 and 5.');
     }
 
-    let jsonData = productinfo.toObject();
-    let { _id, ...productData } = jsonData;
+    product.ratings.push(rating);
 
-    return {
-      _id: jsonData._id,
-      ...productData,
-    };
+    const totalRatings = product.ratings.reduce((sum, rate) => sum + rate, 0);
+    const averageRating = totalRatings / product.ratings.length;
+    product.rating = averageRating;
+
+    await product.save();
+    return product;
+  }
+
+  async rentOrder(productId: string, rentOrderDTO: rentDTO): Promise<Product> {
+    try {
+      const product = await this.productModel.findById(productId);
+      if (!product) {
+        throw new NotFoundException('Product not found');
+      }
+
+      const { rentStartDate, rentEndDate } = rentOrderDTO;
+      const start = new Date(rentStartDate);
+      const end = new Date(rentEndDate);
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        throw new Error('Invalid date format');
+      }
+
+      if (end <= start) {
+        throw new Error('End date must be after start date');
+      }
+      console.log(start, end);
+
+      const rentalDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 3600 * 24));
+      console.log(rentalDays);
+      const deposit = product.deposit || 50; // Fixed deposit amount, or you can store it in the product model
+      console.log(deposit, 'deposit');
+
+      const totalPrice = rentalDays + deposit;
+      console.log(totalPrice, 'total');
+
+      product.rentStartDate = start;
+      product.rentEndDate = end;
+      product.totalRentalPrice = totalPrice; // Assuming you store the total rental price in the product model
+      console.log(product);
+      await product.save();
+
+      return product;
+    } catch (error) {
+      throw new Error('Failed to place rent order: ' + (error as Error).message);
+    }
+  }
+
+  async orderNow(productId: string): Promise<Product> {
+    try {
+      const product = await this.productModel.findById(productId);
+      if (!product) {
+        throw new NotFoundException('Product not found');
+      }
+
+      if (!product.availability) {
+        throw new Error('Product not available');
+      }
+
+      product.availability = false;
+
+      await product.save();
+
+      return product;
+    } catch (error) {
+      throw new Error('Failed to place order: ' + (error as Error).message);
+    }
+  }
+
+  async getProductById(id: string) {
+    const product = await this.productModel.findById(id);
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+    return product.toObject();
   }
 
   async getAllProducts(): Promise<Product[]> {
@@ -107,7 +179,7 @@ export class ProductService {
       throw new Error('Failed to fetch products: ' + (error as Error).message);
     }
   }
-  
+
   async createProduct(productDTO: productDTO) {
     try {
       const newProduct = new this.productModel(productDTO);
@@ -124,41 +196,38 @@ export class ProductService {
       if (!product) {
         throw new NotFoundException('Product not found');
       }
+      const productObject = product.toObject();
 
-      if (product.customized) {
-        throw new BadRequestException('Product is already customized');
-      }
+      const customizedProductData = new this.productModel({
+        ...productObject, // Copy existing product properties
+        _id: undefined, // Ensure a new product ID is generated
+        color: customizationData.color,
+        material: customizationData.material,
+        width: customizationData.width,
+        height: customizationData.height,
+        quantity: customizationData.quantity,
+        customized: true,
+        originalProductId: productId, // Optional: Reference to the original product
+      });
+      const customizedProduct = new this.productModel(customizedProductData);
 
-      product.color = customizationData.color;
-      product.material = customizationData.material;
-      product.width = customizationData.width;
-      product.height = customizationData.height;
-      product.quantity = customizationData.quantity
-      product.customized = true;
+      await customizedProduct.save();
 
-      await product.save();
-      console.log("bekh", product.toObject());
-      return product.toObject();
+      return customizedProduct.toObject();
     } catch (error) {
       throw new Error('Failed to customize product: ' + (error as Error).message);
     }
   }
 
-
-
-  async searchProducts(@Body() requestBody: { letter: string }): Promise<Product[]> {
-    try {
-      const { letter } = requestBody;
-      if (!letter || letter.length !== 1) {
-        throw new BadRequestException('Query must be a single letter in the request body');
-      }
-
-      const products = await this.productModel.find({ name: { $regex: `^${letter}`, $options: 'i' } }).exec();
-      return products;
-    } catch (error) {
-      throw new NotFoundException('Failed to fetch products: ' +  (error as Error).message);
+  async searchProducts(query: string): Promise<Product[]> {
+    if (!query || query.length < 1) {
+      throw new BadRequestException('Query must be at least one character in the request body');
     }
+
+    const products = await this.productModel.find({ 
+      name: { $regex: query, $options: 'i' },
+      customized: false
+    }).exec();
+    return products;
   }
-
-
 }

@@ -22,7 +22,18 @@ export interface userAuth extends Document {
         rating: number;
     }[];
     favourite: mongoose.Types.ObjectId[]; 
-    wishlist: string[];
+    wishlist: {
+        _id:String,
+        name: String,
+        price: Number,
+        description: String,
+        color: String,
+        material: String,
+        image: String,
+        width: Number,
+        height: Number,
+        rating: Number,
+    }[]
     resetPasswordToken: string;
     registerToken: string;
 }

@@ -8,7 +8,9 @@ async function bootstrap() {
   dotenv.config();
   const app = await NestFactory.create(AppModule);
   const productService = app.get(ProductService);
-  await productService.startConsumer();
+
+  // await productService.startConsumer();
+  
   app.use(cookieParser());
   app.enableCors({
     origin: 'http://localhost:3000',

@@ -1,0 +1,164 @@
+.home-page-container {
+  width: 100%;
+  display: flex;
+  overflow: auto;
+  min-height: 100vh;
+  align-items: center;
+  flex-direction: column;
+}
+
+.home-page-home-page {
+  width: 100%;
+  height: 832px;
+  display: flex;
+  overflow: hidden;
+  position: relative;
+  align-items: flex-start;
+  flex-shrink: 0;
+  background-size: cover;
+  background-image: url('/tq_j6tank-4lw-ygsm-1500w.png');
+}
+
+.home-page-rectangle19 {
+  top: 36px;
+  left: 55px;
+  width: 1170px;
+  height: 797px;
+  position: absolute;
+  border-radius: 50px 50px 0 0;
+}
+
+.home-page-nav-bar {
+  top: 36px;
+  left: 42px;
+  width: 1183px;
+  height: 81.0992431640625px;
+  display: flex;
+  position: absolute;
+  align-items: flex-start;
+  flex-shrink: 1;
+}
+
+.home-page-rectangle1 {
+  top: 0px;
+  left: 13px;
+  width: 1170px;
+  height: 81px;
+  position: absolute;
+  border-radius: 50px 50px 10px 10px;
+}
+
+.home-page-line6 {
+  top: 30px;
+  left: 994.9775390625px;
+  width: 18px;
+  height: 1px;
+  position: absolute;
+}
+
+.home-page-text, .home-page-text02, .home-page-text04 {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 18px;
+  font-family: Poppins, sans-serif;
+  font-weight: 400;
+  line-height: normal;
+  text-decoration: none;
+  color: rgba(0, 0, 0, 0.46000000834465027);
+  text-align: left;
+  position: absolute;
+}
+
+.home-page-text {
+  top: 25px;
+  left: 930.5927734375px;
+  width: 55px;
+}
+
+.home-page-text02 {
+  top: 25px;
+  left: 829px;
+  width: 80px;
+}
+
+.home-page-line7 {
+  top: 30px;
+  left: 917.5205078125px;
+  width: 18px;
+  height: 1px;
+  position: absolute;
+}
+
+.home-page-text04 {
+  top: 25px;
+  left: 1033.212158203125px;
+  width: 92px;
+}
+
+.home-page-mdicart {
+  top: 28px;
+  left: 1006.0439453125px;
+  width: 21px;
+  height: 20px;
+  position: absolute;
+}
+
+.home-page-text06 {
+  top: 22px;
+  color: rgba(16, 44, 191, 1);
+  width: 286px;
+  height: auto;
+  position: absolute;
+  font-size: 38px;
+  font-weight: 600;
+  text-align: center;
+  font-family: Poppins, sans-serif;
+  line-height: 17px;
+  text-decoration: none;
+}
+
+.home-page-rectangle18 {
+  top: 409.33856201171875px;
+  left: 79px;
+  width: 477px;
+  height: 221px;
+  position: absolute;
+}
+
+.home-page-text08 {
+  top: 425px;
+  left: 129px;
+  color: rgba(0, 0, 0, 1);
+  width: 417px;
+  height: auto;
+  position: absolute;
+  font-size: 16px;
+  font-family: Ponnala, sans-serif;
+  line-height: 30px;
+  text-decoration: none;
+}
+
+.home-page-rectangle27 {
+  top: 132px;
+  left: 582px;
+  width: 644px;
+  height: 701px;
+  position: absolute;
+  border-radius: 15px 15px 0 0;
+}
+
+.home-page-text10 {
+  top: 213px;
+  left: 215px;
+  color: rgba(0, 117, 255, 0.75);
+  width: 249px;
+  height: auto;
+  position: absolute;
+  font-size: 28px;
+  font-family: Poppins, sans-serif;
+  line-height: 35px;
+  text-align: center;
+  text-decoration: none;
+}

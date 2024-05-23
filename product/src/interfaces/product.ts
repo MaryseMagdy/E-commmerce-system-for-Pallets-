@@ -13,4 +13,9 @@ export interface Product extends Document {
   quantity: number;
   customized: boolean;
   ratings: number[];
+  rentEndDate: Date;
+  rentStartDate: Date;
+  totalRentalPrice: number;
+  dailyRate: number;
+  deposit: number;
 }
