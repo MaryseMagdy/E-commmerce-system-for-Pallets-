@@ -5,6 +5,7 @@ export class cartsDTO {
         price: number; // Assuming price is a number
         userId: string; // Assuming userId is a string
         quantity: number;
+        name: string;
       
       
     toString() {
@@ -12,7 +13,8 @@ export class cartsDTO {
             productId: this.productId,
             price: this.price,
             userId: this.userId,
-            quantity: this.userId
+            quantity: this.userId,
+            name: this.name
         });
     
 }

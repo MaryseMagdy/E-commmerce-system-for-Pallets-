@@ -4,101 +4,101 @@ import Link from 'next/link'
 import Head from 'next/head'
 
 const Wishlist = () => {
-    const [wishlist, setWishlist] = useState([])
+  const [wishlist, setWishlist] = useState([])
 
-    const fetchWishlist = async (userId) => {
-        try {
-            const response = await fetch(`http://localhost:8001/user/wishlist/${userId}`)
-            if (!response.ok) {
-                throw new Error('Network response was not ok')
-            }
-            const data = await response.json()
-            setWishlist(data.wishlist)
-            console.log(data.wishlist)
-        } catch (error) {
-            console.error('There was an error fetching the wishlist!', error)
-        }
+  const fetchWishlist = async (userId) => {
+    try {
+      const response = await fetch(`http://localhost:8001/user/wishlist/${userId}`)
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+      const data = await response.json()
+      setWishlist(data.wishlist)
+      console.log(data.wishlist)
+    } catch (error) {
+      console.error('There was an error fetching the wishlist!', error)
     }
+  }
 
-    const removeFromWishlist = async (userId, productId) => {
-        try {
-            console.log(userId);
-            console.log(wishlist);
-            const response = await fetch('http://localhost:8001/user/wishlist/remove', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ userId, productId })
-            })
-            if (!response.ok) {
-                throw new Error('Network response was not ok')
-            }
-            const result = await response.json()
-            if (result.success) {
-                setWishlist(wishlist.filter(item => item._id !== productId))
-            }
-        } catch (error) {
-            console.error('There was an error removing the item from the wishlist!', error)
-        }
+  const removeFromWishlist = async (userId, productId) => {
+    try {
+      console.log(userId);
+      console.log(wishlist);
+      const response = await fetch('http://localhost:8001/user/wishlist/remove', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId, productId })
+      })
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+      const result = await response.json()
+      if (result.success) {
+        setWishlist(wishlist.filter(item => item._id !== productId))
+      }
+    } catch (error) {
+      console.error('There was an error removing the item from the wishlist!', error)
     }
+  }
 
-    useEffect(() => {
-        const userId = sessionStorage.getItem('userId')
-        if (userId) {
-            fetchWishlist(userId)
-        } else {
-            console.error('No user ID found in session storage!')
-        }
-    }, [])
+  useEffect(() => {
+    const userId = sessionStorage.getItem('userId')
+    if (userId) {
+      fetchWishlist(userId)
+    } else {
+      console.error('No user ID found in session storage!')
+    }
+  }, [])
 
-    return (
-        <>
-            <div className="containerBase">
-                <Head>
-                    <title>Wishlist</title>
-                </Head>
-                <div className="container">
-                    <div className="navBar">
-                        <div className="navBrand">PalletsPlus</div>
-                        <div className="navLinks">
-                            <Link href="/profile" legacyBehavior>
-                                <a className="navText">Profile</a>
-                            </Link>
-                            <Link href="/products" legacyBehavior>
-                                <a className="navText">Products</a>
-                            </Link>
-                            <Link href="/cart" legacyBehavior>
-                                <a className="navText">Your Cart</a>
-                            </Link>
-                        </div>
-                    </div>
-                    <div className="profileContainer">
-                        <div className="profileProfile">
-                            <div className="header">
-                                <h2 className="profileText">Wishlisted Products</h2>
-                            </div>
-                            <div className="addressContainer">
-                                {wishlist.map((item, index) => (
-                                    <div className="addressItem" key={index}>
-                                        <h3>{item.name}</h3>
-                                        <p>{item.description}</p>
-                                        <p>${item.price}</p>
-                                        <button className="buttonAction">Add to Cart</button>
-                                        <button
-                                            className="buttonDelete"
-                                            onClick={() => removeFromWishlist(sessionStorage.getItem('userId'), item._id)}
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+  return (
+    <>
+      <div className="containerBase">
+        <Head>
+          <title>Wishlist</title>
+        </Head>
+        <div className="container">
+          <div className="navBar">
+            <div className="navBrand">PalletsPlus</div>
+            <div className="navLinks">
+              <Link href={`/profile/${sessionStorage.getItem('userId')}`} legacyBehavior>
+                <a className="navText">Profile</a>
+              </Link>
+              <Link href="/products" legacyBehavior>
+                <a className="navText">Products</a>
+              </Link>
+              <Link href="/cart" legacyBehavior>
+                <a className="navText">Your Cart</a>
+              </Link>
             </div>
-            <style jsx>{`
+          </div>
+          <div className="profileContainer">
+            <div className="profileProfile">
+              <div className="header">
+                <h2 className="profileText">Wishlisted Products</h2>
+              </div>
+              <div className="addressContainer">
+                {wishlist.map((item, index) => (
+                  <div className="addressItem" key={index}>
+                    <h3>{item.name}</h3>
+                    <p>{item.description}</p>
+                    <p>${item.price}</p>
+                    <button className="buttonAction">Add to Cart</button>
+                    <button
+                      className="buttonDelete"
+                      onClick={() => removeFromWishlist(sessionStorage.getItem('userId'), item._id)}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <style jsx>{`
         .containerBase {
           background-image: url("/tq_az7ku4h-wq-asb8-1500w.png");
           background-size: cover;
@@ -222,8 +222,8 @@ const Wishlist = () => {
           color: white;
         }
       `}</style>
-        </>
-    )
+    </>
+  )
 }
 
 export default Wishlist

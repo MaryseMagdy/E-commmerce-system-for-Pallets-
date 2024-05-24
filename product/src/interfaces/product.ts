@@ -1,4 +1,11 @@
 import mongoose, { ObjectId, mongo } from "mongoose";
+export interface Review {
+  userId: mongoose.Types.ObjectId;
+  rating: number;
+  content: string;
+  productId:mongoose.Types.ObjectId;
+}
+
 export interface Product extends Document {
   image: string;
   name: string;
@@ -18,4 +25,5 @@ export interface Product extends Document {
   totalRentalPrice: number;
   dailyRate: number;
   deposit: number;
+  reviews: Review[];
 }

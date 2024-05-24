@@ -1,11 +1,12 @@
 import { Injectable, Inject, NotFoundException, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { Model } from 'mongoose';
+import mongoose, { Model } from 'mongoose';
 import { Product } from './interfaces/product';
 import { productDTO } from './dto/product.dto';
 import { Body, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { customizeDTO } from './dto/customize.dto';
 import { rentDTO } from './dto/rent.dto';
 import { Kafka } from 'kafkajs';
+import { Reviews } from './dto/reviews.dto';
 
 @Injectable()
 export class ProductService implements OnModuleInit, OnModuleDestroy {
@@ -40,6 +41,10 @@ export class ProductService implements OnModuleInit, OnModuleDestroy {
   private async subscribeToTopics() {
     await this.consumer.subscribe({ topic: 'product-rating' });
     await this.consumer.subscribe({ topic: 'get-product-details' });
+    await this.consumer.subscribe({ topic: 'add-to-favourites' });
+    await this.consumer.subscribe({ topic: 'cart-product-details' });
+
+
   }
 
   async startConsumer() {
@@ -77,6 +82,48 @@ export class ProductService implements OnModuleInit, OnModuleDestroy {
               messages: [{ value: JSON.stringify(productDetails) }],
             });
           }
+          if (topic === 'cart-product-details') {
+            const product = await this.productModel.findById(productId).lean();
+            if (!product) {
+              return;
+            }
+            const productDetails = {
+              productId: product._id,
+              name: product.name,
+              price: product.price,
+              userId,
+              quantity:3
+            };
+            console.log('Product details:', productDetails);
+            await this.producer.send({
+              topic: 'cart-product-response',
+              messages: [{ value: JSON.stringify(productDetails) }],
+            });
+          }      
+          if (topic === 'add-to-favourites') {
+              const product = await this.productModel.findById(productId).lean();
+              if (!product) {
+                return;
+              }
+              const productDetails = {
+                _id: product._id,
+                name: product.name,
+                price: product.price,
+                description: product.description,
+                color: product.color,
+                material: product.material,
+                image: product.image,
+                width: product.width,
+                height: product.height,
+                rating: product.rating,
+                userId: userId
+              };
+              console.log('Add to favourites - Product details:', productDetails); // Log product details
+              await this.producer.send({
+                topic: 'add-to-favourites-response',
+                messages: [{ value: JSON.stringify(productDetails) }],
+              });
+            }
         } catch (error) {
           console.error('Error parsing message:', error);
         }
@@ -84,6 +131,25 @@ export class ProductService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  async sendProductDetailsToCart(productId: string) {
+    const product = await this.productModel.findById(productId);
+    if (!product) {
+      throw new NotFoundException('Product not found');
+    }
+
+    const productDetails = {
+      productId: product._id,
+      name: product.name,
+      price: product.price,
+    };
+
+    await this.producer.send({
+      topic: 'cart-product-details',
+      messages: [{ value: JSON.stringify(productDetails) }],
+    });
+
+    console.log('Product details sent to cart', productDetails);
+  }
   async rateProduct(productId: string, rating: number) {
     const product = await this.productModel.findById(productId);
     if (!product) {
@@ -230,4 +296,34 @@ export class ProductService implements OnModuleInit, OnModuleDestroy {
     }).exec();
     return products;
   }
+  async getReviews(productId: string) {
+    const product = await this.productModel.findById(productId);
+    if (!product) {
+        throw new Error('Product not found');
+    }else{
+
+        return product.reviews;
+    }
+  }
+  async createReview(productId: string, reviewData: Reviews) {
+    const product = await this.productModel.findById(productId);
+    if (!product) {
+        throw new Error('Product not found');
+    }
+    if (!mongoose.Types.ObjectId.isValid(reviewData.userId)) {
+        throw new Error('Invalid UserId');
+    }
+
+    const review = {
+        productId: product._id as mongoose.Types.ObjectId,
+        userId: new mongoose.Types.ObjectId(reviewData.userId),
+        content: reviewData.content,
+        rating: reviewData.rating,
+    };
+
+    product.reviews.push(review);
+    await product.save();
+    return { success: true, review: product.reviews[product.reviews.length - 1] };
+}
+
 }

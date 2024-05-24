@@ -75,6 +75,34 @@ const productSchema: Schema = new Schema({
   totalRentalPrice: {
     type: Number,
     required: false
+  },
+  offers:{
+    type: String,
+    required: false,
+    default:"0"
+  },
+  reviews: {
+    type: [
+      {
+        userId: {
+          type: mongoose.Types.ObjectId,
+          required: true
+        },
+        rating: {
+          type: Number,
+          required: true
+        },
+        content: {
+          type: String,
+          required: true
+        },
+        productId: {
+          type: mongoose.Types.ObjectId,
+          required: true
+        }
+      }
+    ],
+    default: []
   }
 });
 

@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import mongoose, { Model } from 'mongoose';
-import { userAuth } from './interfaces/userAuth';
+import mongoose, { Model, Types } from 'mongoose';
+import { Card, userAuth } from './interfaces/userAuth';
 import { UserDTO } from './dto/create.user.dto';
 import { LoginDto } from './dto/login.dto';
 import { addToFavouritesDTO } from './dto/addToFavourites.dto';
@@ -40,6 +40,13 @@ export class userAuthService {
   async onModuleInit() {
     await this.producer.connect();
     await this.consumer.connect();
+    await this.consumer.subscribe({ topic: 'product-details-response' });
+    await this.consumer.subscribe({ topic: 'add-to-favourites-response' });
+    await this.consumer.subscribe({ topic: 'card-details' });
+    await this.consumer.subscribe({ topic: 'order-placed' });
+    await this.consumer.subscribe({ topic: 'cart-to-user' });
+
+
     this.startConsumer();
   }
 
@@ -48,19 +55,213 @@ export class userAuthService {
     await this.consumer.disconnect();
   }
 
-  async startConsumer() {
-    await this.consumer.subscribe({ topic: 'product-details-response' });
+  private async startConsumer() {
     await this.consumer.run({
       eachMessage: async ({ topic, partition, message }) => {
         const data = JSON.parse(message.value.toString());
         if (topic === 'product-details-response') {
-            console.log('Received product details from Kafka:', data);
-            await this.addToWishlistConsumer(data);
+          console.log('Received product details from Kafka:', data);
+          await this.addToWishlistConsumer(data);
+        } else if (topic === 'add-to-favourites-response') {
+          console.log('Received add to favourites response from Kafka:', data);
+          await this.addToFavouritesConsumer(data);
+        } else if (topic === 'card-details') {
+          console.log('Received card details from Kafka:', data);
+          await this.addCardToUser(data.userId, data.cardDetails);
         }
+        if (topic === 'order-placed') {
+          const { userId, order } = data;
+          console.log(`Received order data for user ${userId}, order:`, order);
+
+          // Validate the order object structure
+          if (!order.items || !order.items.length) {
+              throw new Error('Invalid order: missing items');
+          }
+          order.items.forEach(item => {
+              if (!item.productId || !item.quantity || !item.price) {
+                  throw new Error('Invalid order item: missing fields');
+              }
+          });
+
+          await this.addOrderToUser(userId, order);
       }
+      if (topic === 'cart-to-user') {
+        console.log('Received cart data from Kafka:', data);
+        await this.addCartToUser(data.userId, data.cartItem);
+      }
+      },
     });
   }
+  async addCartToUser(userId: string, cartItem: any) {
+    try {
+      const user = await this.userAuthModel.findById(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      console.log("hi")
+      console.log(cartItem);
+      user.cart.push(cartItem);
+      await user.save();
 
+      console.log('Cart added to user successfully');
+    } catch (error) {
+      console.error('Error adding cart to user:', error);
+      throw new Error('Failed to add cart to user');
+    }
+  }
+   // New method to get user carts
+   async getUserCarts(userId: string) {
+    try {
+      const user = await this.userAuthModel.findById(userId).exec();
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+      return user.cart;
+    } catch (error) {
+      console.error('Error getting user carts:', error);
+      throw new HttpException('Server error', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+  async addOrderToUser(userId: string, order: any) {
+    try {
+        console.log(`Looking up user with userId: ${userId}`);
+        const user = await this.userAuthModel.findById(userId);
+        console.log('User lookup result:', user);
+        console.log("hereeee");
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+
+        console.log("orderrrrr", order);
+
+        const userOrder = {
+            userId: new Types.ObjectId(order.userId),
+            items: order.items.map(item => ({
+                productId: new Types.ObjectId(item.productId),
+                quantity: item.quantity,
+                price: item.price
+            })),
+            date: new Date(order.date),
+            status: order.status,
+            totalAmount: order.totalAmount
+        };
+
+        user.orders.push(userOrder);
+        await user.save();
+
+        console.log('Order added to user successfully');
+    } catch (error) {
+        console.error('Error adding order to user:', error);
+        throw new Error('Failed to add order to user');
+    }
+}
+
+  private async addCardToUser(userId: string, cardDetails: Card) {
+    try {
+      const user = await this.userAuthModel.findById(userId);
+      if (!user) {
+        console.log('User not found');
+        return;
+      }
+
+      if (!user.cards) {
+        user.cards = [];
+      }
+
+      user.cards.push(cardDetails);
+      await user.save();
+
+      console.log('Card added to user successfully');
+    } catch (error) {
+      console.error('Error adding card to user:', error);
+    }
+  }
+
+  async addCard(userId: string, cardDetails: Card) {
+    try {
+      const user = await this.userAuthModel.findById(userId);
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      user.cards.push(cardDetails);
+      await user.save();
+      return { success: true, message: 'Card added successfully' };
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      throw new HttpException(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
+  async removeCard(userId: string, cardId: string) {
+    try {
+      const user = await this.userAuthModel.findById(userId);
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      user.cards = user.cards.filter(card => card.cardId !== cardId);
+      await user.save();
+      return { success: true, message: 'Card removed successfully' };
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      throw new HttpException(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);    }
+  }
+  async getCards(userId: string) {
+    try {
+      const user = await this.userAuthModel.findById(userId);
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      return user.cards;
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      throw new HttpException(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);    }
+  }
+
+  async editCard(userId: string, cardId: string, cardDetails: Partial<Card>) {
+    try {
+      const user = await this.userAuthModel.findById(userId);
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+
+      const cardIndex = user.cards.findIndex(card => card.cardId === cardId);
+      if (cardIndex === -1) {
+        throw new HttpException('Card not found', HttpStatus.NOT_FOUND);
+      }
+
+      user.cards[cardIndex] = { ...user.cards[cardIndex], ...cardDetails };
+      await user.save();
+      return { success: true, message: 'Card updated successfully' };
+    } catch (error) {
+      const errorMessage = (error as Error).message;
+      throw new HttpException(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);    }
+  }
+async addToFavouritesConsumer(productDetails: any) {
+    try {
+      const userId = productDetails.userId;
+      const user = await this.userAuthModel.findById(userId);
+      if (!user) {
+        console.log('User not found');
+        return;
+      }
+  
+      if (user.favourite.some(product => product && product._id && product._id.toString() === productDetails._id.toString())) {
+        console.log('Product already in favourites');
+        return;
+      }
+  
+      user.favourite.push(productDetails);
+      await user.save();
+  
+      console.log('Product added to favourites successfully');
+    } catch (error) {
+      console.error('Error adding product to favourites:', error);
+    }
+  }
   async getProductDetailsFromKafka(userId: string, productId: string) {
     await this.producer.send({
       topic: 'get-product-details',
@@ -114,6 +315,22 @@ export class userAuthService {
       return { success: false, message: (error as Error).message };
     }
   }
+  async addToFavourites(addToFavouritesDTO: addToFavouritesDTO): Promise<any> {
+    const { userId, productId } = addToFavouritesDTO;
+  
+    try {
+      await this.producer.send({
+        topic: 'add-to-favourites',
+        messages: [{ value: JSON.stringify({ userId, productId }) }]
+      });
+  
+      return { success: true, message: 'Request to add to favourites sent successfully' };
+    } catch (error) {
+      console.error('Error sending add to favourites request to Kafka:', error);
+      return { success: false, message: (error as Error).message };
+    }
+  }
+
 
   async removeFromWishlist(userId: string, productId: string): Promise<any> {
     try {
@@ -170,14 +387,6 @@ async rateProduct(userId: string, productId: string, rating: number) {
 }
 
 
-  async logout(req: Request, res: Response) {
-    try {
-      res.clearCookie('jwt'); // Clear the JWT cookie
-      return { success: true, message: 'Logged out successfully' };
-    } catch (error) {
-      throw new HttpException('Logout failed', HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-  }
     async register(userDTO: UserDTO) {
         try {
             const newUser = await this.userAuthModel.create(userDTO);
@@ -455,33 +664,33 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
     }
 
   
-    async addToFavourites(userId: string, productId: mongoose.Types.ObjectId) {
-        try {
-            const user = await this.userAuthModel.findById(userId);
-            if (!user) {
-                return { success: false, message: 'User not found' };
-            }
+    // async addToFavourites(userId: string, productId: mongoose.Types.ObjectId) {
+    //     try {
+    //         const user = await this.userAuthModel.findById(userId);
+    //         if (!user) {
+    //             return { success: false, message: 'User not found' };
+    //         }
 
-            if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
-                return { success: false, message: 'Invalid product ID' };
-            }
+    //         if (!productId || !mongoose.Types.ObjectId.isValid(productId)) {
+    //             return { success: false, message: 'Invalid product ID' };
+    //         }
 
-            // const productExists = await productModel.findById(productId);
-            // if (!productExists) {
-            //     return { success: false, message: 'Product not found' };
-            // }
+    //         // const productExists = await productModel.findById(productId);
+    //         // if (!productExists) {
+    //         //     return { success: false, message: 'Product not found' };
+    //         // }
 
-            if (!user.favourite.includes(productId)) {
-                user.favourite.push(productId);
-                await user.save();
-                return { success: true, message: 'Product added to favorites successfully' };
-            } else {
-                return { success: false, message: 'Product already in favorites' };
-            }
-        } catch (error) {
-            return { success: false, message: (error as Error).message };
-        }
-    }
+    //         if (!user.favourite.includes(productId)) {
+    //             user.favourite.push(productId);
+    //             await user.save();
+    //             return { success: true, message: 'Product added to favorites successfully' };
+    //         } else {
+    //             return { success: false, message: 'Product already in favorites' };
+    //         }
+    //     } catch (error) {
+    //         return { success: false, message: (error as Error).message };
+    //     }
+    // }
     private async verifyTokenAndGetUser(resetPasswordToken: string) {
         return await this.userAuthModel.findOne({ resetPasswordToken });
     }
@@ -564,6 +773,19 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
         return user.reviews;
     }
   }
+  async getUserFavorites(userId: string) {
+    try {
+      const user = await this.userAuthModel.findById(userId);
+      if (!user) {
+        throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+      }
+      console.log(user);
+      console.log("user.favourite", user.favourite)
+      return user.favourite ;
+    } catch (error) {
+      throw new Error('Favourites not found');
+    }
+  }
   
   async deleteReview(userId: string, reviewId: string) {
     const user = await this.userAuthModel.findById(userId);
@@ -622,5 +844,12 @@ async changePassword(userId: string, currentPassword: string, newPassword: strin
             return { success: false, message: (error as Error).message };
         }
       }
-
+      async logout(req: Request, res: Response) {
+        try {
+          res.clearCookie('jwt'); // Clear the JWT cookie
+          return { success: true, message: 'Logged out successfully' };
+        } catch (error) {
+          throw new HttpException('Logout failed', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+      }
 }

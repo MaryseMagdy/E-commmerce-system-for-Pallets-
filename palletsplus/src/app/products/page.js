@@ -13,6 +13,7 @@ const Products = () => {
     const [wishlist, setWishlist] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
 
+
     const fetchProducts = async () => {
         try {
             const response = await fetch('http://localhost:8000/product/');
@@ -53,6 +54,7 @@ const Products = () => {
     }, []);
 
     useEffect(() => {
+        const userId = sessionStorage.getItem('userId');
         const searchProducts = async () => {
             if (searchQuery.length < 1) {
                 fetchProducts();

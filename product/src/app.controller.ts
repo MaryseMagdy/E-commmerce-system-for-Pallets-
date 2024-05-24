@@ -4,6 +4,7 @@ import { Product } from '../src/interfaces/product';
 import { productDTO } from './dto/product.dto';
 import { customizeDTO } from './dto/customize.dto';
 import { rentDTO } from './dto/rent.dto';
+import { Reviews } from './dto/reviews.dto';
 
 @Controller('product')
 export class ProductController {
@@ -91,5 +92,27 @@ async getProductById(@Param('id') id: string) {
 
     const products = await this.ProductService.searchProducts(query);
     return products;
-}
+} 
+@Get(':productId/reviews')
+  async getReviews(@Param('productId') productId: string) {
+    try {
+      const reviews = await this.ProductService.getReviews(productId);
+      return reviews;
+    } catch (error) {
+      throw new NotFoundException( (error as Error).message);
+    }
+  }
+  @Post(':productId/reviews')
+  async createReview(
+      @Param('productId') productId: string,
+      @Body() createReviewDto: Reviews,
+  ) {
+      createReviewDto.productId = productId;
+      return this.ProductService.createReview(productId, createReviewDto);
+  }
+  @Post(':id/sendToCart')
+  async sendProductDetailsToCart(@Param('id') productId: string) {
+    await this.ProductService.sendProductDetailsToCart(productId);
+    return { message: 'Product details sent to cart' };
+  }
 }

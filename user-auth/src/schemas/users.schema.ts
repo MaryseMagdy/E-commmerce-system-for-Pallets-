@@ -1,6 +1,40 @@
 import { register } from 'module';
 import mongoose, { Schema } from 'mongoose';
-
+const orderItemSchema: Schema = new Schema({
+  productId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Product',
+      required: true,
+  },
+  quantity: {
+      type: Number,
+      required: true,
+  },
+  price: {
+      type: Number,
+      required: true,
+  }
+});
+const orderSchema: Schema = new Schema({
+  userId: {
+      type: Schema.Types.ObjectId,
+      ref: 'UserAuth',
+      required: true,
+  },
+  items: [orderItemSchema],
+  date: {
+      type: Date,
+      required: true,
+  },
+  status: {
+      type: String,
+      required: true,
+  },
+  totalAmount: {
+      type: Number,
+      required: true,
+  }
+});
 const addressSchema: Schema = new Schema({
   label:{
     type: String,
@@ -23,21 +57,46 @@ const addressSchema: Schema = new Schema({
     required: true
   }
 });
+
 const favouriteSchema: Schema = new Schema({
-  productId:{
+  _id: {
     type: mongoose.Schema.Types.ObjectId,
     required: true
   },
-  productName: {
+  name: {
     type: String,
     required: true
   },
-  productPrice: {
+  price: {
     type: Number,
     required: true
   },
-  productImage: {
+  description: {
     type: String,
+    required: true
+  },
+  color: {
+    type: String,
+    required: true
+  },
+  material: {
+    type: String,
+    required: true
+  },
+  image: {
+    type: String,
+    required: true
+  },
+  width: {
+    type: Number,
+    required: true
+  },
+  height: {
+    type: Number,
+    required: true
+  },
+  rating: {
+    type: Number,
     required: true
   }
 });
@@ -108,11 +167,26 @@ const userAuthSchema: Schema = new Schema({
     type: String,
     default: null
   },
-  favourite: [{
-    type: Schema.Types.ObjectId,
-    ref: 'product',  
+  favourite: {
+    type: [favouriteSchema],
     default: []
-}]
+  },
+  cards: [
+    {
+      cardId: String,
+      last4: String,
+      brand: String,
+      exp_month: Number,
+      exp_year: Number,
+      funding: String,
+      country: String,
+      // number: String,
+      // cvv: String,
+    },
+  ],
+  orders: [orderSchema],
+  cart: [{ type: Schema.Types.ObjectId, ref: 'Cart' }],
+
 });
 
 export const UserAuthSchema = userAuthSchema;

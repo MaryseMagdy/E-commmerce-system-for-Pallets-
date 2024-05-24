@@ -1,8 +1,9 @@
-import { Document, Types } from 'mongoose';
+import { Document } from 'mongoose';
 
-export interface carts extends Document{
-  productId: Types.ObjectId;
-  price: number;
-  userId: Types.ObjectId;
+export interface Cart extends Document {
+  userId: string;
+  productId: string;
   quantity: number;
+  name: string;
+  price: number;
 }

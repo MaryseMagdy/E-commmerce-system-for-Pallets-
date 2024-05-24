@@ -28,7 +28,7 @@
   border-radius: 50px 50px 0 0;
 }
 
-.home-page-nav-bar {
+.nav-bar {
   top: 36px;
   left: 42px;
   width: 1183px;
@@ -39,7 +39,7 @@
   flex-shrink: 1;
 }
 
-.home-page-rectangle1 {
+.rectangle1 {
   top: 0px;
   left: 13px;
   width: 1170px;
@@ -48,7 +48,7 @@
   border-radius: 50px 50px 10px 10px;
 }
 
-.home-page-line6 {
+.line6 {
   top: 30px;
   left: 994.9775390625px;
   width: 18px;
@@ -56,7 +56,7 @@
   position: absolute;
 }
 
-.home-page-text, .home-page-text02, .home-page-text04 {
+.text, .text02, .text04 {
   background: none;
   border: none;
   padding: 0;
@@ -71,19 +71,19 @@
   position: absolute;
 }
 
-.home-page-text {
+.text {
   top: 25px;
-  left: 930.5927734375px;
+  left: 700px;
   width: 55px;
 }
 
-.home-page-text02 {
+.text02 {
   top: 25px;
-  left: 829px;
+  left: 800px;
   width: 80px;
 }
 
-.home-page-line7 {
+.line7 {
   top: 30px;
   left: 917.5205078125px;
   width: 18px;
@@ -91,21 +91,65 @@
   position: absolute;
 }
 
-.home-page-text04 {
+.text04 {
   top: 25px;
-  left: 1033.212158203125px;
+  left: 900px;
   width: 92px;
 }
 
-.home-page-mdicart {
+.mdicart {
   top: 28px;
-  left: 1006.0439453125px;
+  left: 990px;
   width: 21px;
   height: 20px;
   position: absolute;
 }
+.container {
+  padding: 20px;
+  text-align: center;
+}
+.header {
+  margin-bottom: 20px;
+}
+.navBar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
 
-.home-page-text06 {
+.navLinks a {
+  color: #007bff;
+  text-decoration: none;
+  font-size: 18px;
+  padding: 10px;
+  border: 1px solid #007bff;
+  border-radius: 5px;
+  transition: background-color 0.3s ease;
+}
+.navLinks a:hover {
+  background-color: #007bff;
+  color: white;
+}
+.text05 {
+  top: 25px;
+  left: 1050px;
+  width: 80px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 18px;
+  font-family: Poppins, sans-serif;
+  font-weight: 400;
+  line-height: normal;
+  text-decoration: none;
+  color: rgba(0, 0, 0, 0.46000000834465027);
+  text-align: left;
+  position: absolute;
+}
+
+.text06 {
   top: 22px;
   color: rgba(16, 44, 191, 1);
   width: 286px;
@@ -135,7 +179,7 @@
   height: auto;
   position: absolute;
   font-size: 16px;
-  font-family: Ponnala, sans-serif;
+  font-family: Poppins, sans-serif;
   line-height: 30px;
   text-decoration: none;
 }

@@ -1,10 +1,10 @@
 import { Connection } from 'mongoose';
-import {CartsSchema} from "../schemas/carts.schema";
+import {CartSchema} from "../schemas/carts.schema";
 
-export const cartssprovider = [
+export const cartsprovider = [
   {
     provide: 'carts_Model',
-    useFactory: (connection: Connection) => connection.model('carts', CartsSchema),
+    useFactory: (connection: Connection) => connection.model('carts', CartSchema),
     inject: ['DATABASE_CONNECTION'],
   },
 ];

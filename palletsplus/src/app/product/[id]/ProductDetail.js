@@ -3,14 +3,17 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './ProductDetail.module.css';
-import CustomizeProduct from './CustomizeProduct'; // Import the CustomizeProduct component
+import CustomizeProduct from './CustomizeProduct';
+import ShareModal from './ShareModal';
 
 const ProductDetail = ({ productId }) => {
     const [product, setProduct] = useState(null);
-    const [activeSection, setActiveSection] = useState('details');  // Set default tab to 'details'
-    const [showCustomizeForm, setShowCustomizeForm] = useState(false); // Add state for showing the customize form
-    const [refresh, setRefresh] = useState(false); // State to trigger a refresh
+    const [activeSection, setActiveSection] = useState('details');
+    const [showCustomizeForm, setShowCustomizeForm] = useState(false);
+    const [refresh, setRefresh] = useState(false);
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const router = useRouter();
+    localStorage.setItem('productId', productId);
 
     const fetchProduct = async () => {
         try {
@@ -20,6 +23,8 @@ const ProductDetail = ({ productId }) => {
                 throw new Error('Failed to fetch product');
             }
             const data = await response.json();
+            sessionStorage.setItem('productId', data._id)
+            console.log(data._id, "1")
             console.log("Product data fetched:", data); // Log the fetched data for debugging
             setProduct(data);
         } catch (error) {
@@ -60,8 +65,14 @@ const ProductDetail = ({ productId }) => {
     };
 
     const handleShareClick = () => {
-        // Implement share functionality here
-        alert('Share button clicked!');
+        setIsShareModalOpen(true); // Open ShareModal
+    };
+
+    const handleCloseShareModal = () => {
+        setIsShareModalOpen(false); // Close ShareModal
+    };
+    const handleReviewsClick = () => {
+        router.push(`/review/${productId}`);
     };
 
     return (
@@ -75,7 +86,7 @@ const ProductDetail = ({ productId }) => {
                             <a href="/home" className={styles.navBrand}>PalletsPlus</a>
                             <div className={styles.navLinks}>
                                 <a href="/products" className={styles.navText}>Products</a>
-                                <a href={`/profile/${sessionStorage.getItem('userId')}`} className={styles.navText}>Profile</a>
+                                <a href="/profile" className={styles.navText}>Profile</a>
                                 <a href="/cart" className={styles.navText}>Your Cart</a>
                             </div>
                         </div>
@@ -86,6 +97,7 @@ const ProductDetail = ({ productId }) => {
                                 <div className={styles.description}>
                                     <div className={styles.descriptionHeader}>
                                         <h3 className={styles.sectionTitle}>Description</h3>
+                                        <button className={styles.shareButton} onClick={handleReviewsClick}>Reviews</button>
                                         <button className={styles.shareButton} onClick={handleShareClick}>Share</button>
                                     </div>
                                     <p className={styles.productDescription}>{product.description}</p>
@@ -122,15 +134,17 @@ const ProductDetail = ({ productId }) => {
                                 <div className={styles.actionButtons}>
                                     <button className={styles.button} onClick={handleCustomizeClick}>Customize</button>
                                     <button className={styles.button} onClick={handleRentClick}>Rent</button>
-                                    <button className={styles.button}>Order</button>
+                                    <button className={styles.button}>Add To Cart</button>
                                     <button className={styles.buttonCancel} onClick={handleCancelClick}>Cancel</button>
                                 </div>
                             </div>
                         </div>
                     </>
-                )}
-            </div>
-        </div>
+                )
+                }
+            </div >
+            <ShareModal isOpen={isShareModalOpen} onClose={handleCloseShareModal} currentUrl={window.location.href} /> {/* Render ShareModal */}
+        </div >
     );
 };
 

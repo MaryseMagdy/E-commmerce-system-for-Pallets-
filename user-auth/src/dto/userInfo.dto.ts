@@ -1,3 +1,4 @@
+
 export class userInfoDTO {
     readonly firstName: string;
     readonly lastName: string;

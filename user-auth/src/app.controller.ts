@@ -11,6 +11,8 @@ import { LoginDto } from './dto/login.dto';
 import { JwtAuthGuard } from './strategies/jwt-auth.guard';
 import { NotFoundException } from '@nestjs/common';
 import { AddToWishlistDTO } from './dto/addToWishlist.dto';
+import { addToFavouritesDTO } from './dto/addToFavourites.dto';
+import { Card } from './interfaces/userAuth';
 
 interface JwtPayload {
   userId: string;
@@ -33,7 +35,11 @@ export class userAuthController {
   //   async register(@Body() UserDTO:UserDTO){
   //     return this.userAuthService.register(UserDTO);
   // }
-  
+ 
+  @Get(':id/cart')
+  async getUserCarts(@Param('id') userId: string) {
+    return this.userAuthService.getUserCarts(userId);
+  }
   @Post('/rateProduct')
   async rateProduct(
       @Req() req: Request,
@@ -214,15 +220,52 @@ export class userAuthController {
     }
   }
 
-  @Post('/addToFavourites/:userId')
-  async addToFavourites(@Param('userId') userId: string, @Body('productId') productId: mongoose.Types.ObjectId) {
-    try {
-        const result = await this.userAuthService.addToFavourites(userId, productId);
-        return { success: result.success, message: result.message };
-    } catch (error) {
-        return { success: false, message: (error as Error).message };
+  //Cards
+  @Post(':userId/cards')
+  async addCard(@Param('userId') userId: string, @Body() cardDetails: Card) {
+    return this.userAuthService.addCard(userId, cardDetails);
+  }
+
+  @Delete(':userId/cards/:cardId')
+  async removeCard(@Param('userId') userId: string, @Param('cardId') cardId: string) {
+    return this.userAuthService.removeCard(userId, cardId);
+  }
+
+  @Put(':userId/cards/:cardId')
+  async editCard(@Param('userId') userId: string, @Param('cardId') cardId: string, @Body() cardDetails: Partial<Card>) {
+    return this.userAuthService.editCard(userId, cardId, cardDetails);
+  }
+  @Get(':userId/cards')
+  async getCards(@Param('userId') userId: string) {
+    return this.userAuthService.getCards(userId);
+  }
+
+  //Favorites
+  @Post('add-to-favourites')
+  async addToFavourites(
+    @Body() addToFavouritesDTO: addToFavouritesDTO,
+    @Res() res: Response
+  ) {
+    const result = await this.userAuthService.addToFavourites(addToFavouritesDTO);
+    if (result.success) {
+      return res.status(200).json(result);
+    } else {
+      return res.status(400).json(result);
     }
-  } 
+  }
+  @Get('favorites/:userId')
+  async getFavorites(@Param('userId') userId: string) {
+      try {
+          const reviews = await this.userAuthService.getUserFavorites(userId);
+          return { success: true, reviews };
+      } catch (error) {
+          if (error instanceof HttpException) {
+              throw error;
+          }
+          throw new HttpException('Unexpected error occurred', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+  }
+
   //Reviews
   @Post('reviews/:userId')
   async createReview(@Param('userId') userId: string, @Body() reviewData: Reviews) {
