@@ -3,199 +3,266 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Head from 'next/head';
 import styles from './page.module.css';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const YourCart = (props) => {
-  const [cartItems, setCartItems] = useState([]);
-  const [subtotal, setSubtotal] = useState(0);
+const YourCart = () => {
+  const [items, setItems] = useState([]);
+  const [couponCode, setCouponCode] = useState('');
+  const [discount, setDiscount] = useState(0);
 
   useEffect(() => {
-    const fetchCartItems = async () => {
+    const userId = sessionStorage.getItem('userId');
+    console.log(userId);
+
+    if (!userId) {
+      console.error('User ID is not defined');
+      return;
+    }
+
+    async function fetchCartItems() {
       try {
-        const response = await fetch('http://localhost:8000/cart'); 
+        const response = await fetch(`http://localhost:8004/carts/${userId}`);
         if (!response.ok) {
-          throw new Error('Network response was not ok');
+          throw new Error('Failed to fetch cart items');
         }
         const data = await response.json();
-        setCartItems(data.items || []); // Ensure data.items is defined
-        calculateSubtotal(data.items || []);
+
+        // Fetch product details for each cart item
+        const itemsWithDetails = await Promise.all(
+          data.map(async (item) => {
+            const productResponse = await fetch(`http://localhost:8000/product/${item.productId}`);
+            if (!productResponse.ok) {
+              throw new Error('Failed to fetch product details');
+            }
+            const productData = await productResponse.json();
+            return { ...item, ...productData };
+          })
+        );
+        setItems(itemsWithDetails);
       } catch (error) {
         console.error('Error fetching cart items:', error);
-        setCartItems([]); // Set to empty array in case of error
       }
-    };
+    }
 
     fetchCartItems();
   }, []);
 
-  const calculateSubtotal = (items) => {
-    const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
-    setSubtotal(subtotal);
+  const handleIncreaseQuantity = async (productId) => {
+    const userId = sessionStorage.getItem('userId');
+    try {
+      const response = await fetch(`http://localhost:8004/carts/increase/${userId}/${productId}`, {
+        method: 'PUT',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to increase quantity');
+      }
+      const updatedItem = await response.json();
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item.productId === productId ? { ...item, quantity: updatedItem.quantity } : item
+        )
+      );
+    } catch (error) {
+      console.error('Error increasing quantity:', error);
+    }
   };
+
+  const handleDecreaseQuantity = async (productId) => {
+    const userId = sessionStorage.getItem('userId');
+    console.log(productId);
+    const item = items.find((item) => item.productId === productId);
+    console.log(item);
+    if (item.quantity <= 1) {
+      try {
+        const response = await fetch(`http://localhost:8004/carts/remove/${userId}/${productId}`, {
+          method: 'DELETE',
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to remove item');
+        }
+        setItems((prevItems) => prevItems.filter((item) => item.productId !== productId));
+      } catch (error) {
+        console.error('Error removing item:', error);
+      }
+    } else {
+      try {
+        const response = await fetch(`http://localhost:8004/carts/decrease/${userId}/${productId}`, {
+          method: 'PUT',
+        });
+        if (!response.ok) {
+          throw new Error('Failed to decrease quantity');
+        }
+        const updatedItem = await response.json();
+        setItems((prevItems) =>
+          prevItems.map((item) =>
+            item.productId === productId ? { ...item, quantity: updatedItem.quantity } : item
+          )
+        );
+      } catch (error) {
+        console.error('Error decreasing quantity:', error);
+      }
+    }
+  };
+
+  const handleApplyCoupon = () => {
+    let discountValue = 0;
+    if (couponCode === '30%OFF') {
+      discountValue = 0.3; // 30% discount
+    } else if (couponCode === '20%OFF') {
+      discountValue = 0.2; // 20% discount
+    } else if (couponCode === '10%OFF') {
+      discountValue = 0.1; // 10% discount
+    } else {
+      setDiscount(0);
+      alert('Invalid coupon code');
+      return;
+    }
+
+    const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+    setDiscount(subtotal * discountValue);
+  };
+
+  const handleCheckout = async () => {
+    try {
+      const userId = sessionStorage.getItem('userId') || ''; // Retrieve userId from sessionStorage
+      const response = await fetch(`http://localhost:8002?user_id=${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to initiate checkout');
+      }
+      const checkoutSession = await response.json();
+      if (checkoutSession && checkoutSession.url) {
+        window.location.href = checkoutSession.url; // Redirect to the Stripe checkout session
+      }
+    } catch (error) {
+      console.error('Error initiating checkout:', error);
+      toast.error('An error occurred while initiating checkout.');
+    }
+  };
+
+  const handleSuccess = async (sessionId, userId) => {
+    try {
+      const response = await fetch(`http://localhost:8002/success?session_id=${sessionId}&user_id=${userId}`);
+      if (!response.ok) {
+        throw new Error('Failed to process payment success');
+      }
+      const result = await response.json();
+      if (result.message === 'Payment success and card details processed') {
+        toast.success('Payment was successful!');
+        router.push('/home');
+      } else {
+        toast.error('An error occurred while processing payment success.');
+      }
+    } catch (error) {
+      console.error('Error processing payment success:', error);
+      toast.error('An error occurred while processing payment success.');
+    }
+  };
+
+  const subtotal = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const total = subtotal - discount + 24.99; // Assuming $24.99 is the fixed tax amount
 
   return (
     <>
-      <div className={styles.yourCartContainer}>
+      <div className={styles['your-cart-container']}>
         <Head>
           <title>Your Cart</title>
         </Head>
-        <div className={styles.yourCartYourCart}>
-          <img
-            src="/rectangle201612-gdba-1200w.png"
-            alt="Rectangle201612"
-            className={styles.yourCartRectangle20}
-          />
-          <div className={styles.yourCartGroup55}>
-            <span className={styles.yourCartText}>1. Shopping Cart</span>
-            <span className={styles.yourCartText01}>2. Shipping Details</span>
-            <span className={styles.yourCartText02}>3. Payment Options</span>
-            <img
-              src="/line171638-ka8.svg"
-              alt="Line171638"
-              className={styles.yourCartLine17}
-            />
-            <img
-              src="/line181639-sn7e.svg"
-              alt="Line181639"
-              className={styles.yourCartLine18}
-            />
+        <div className={styles['your-cart-nav-bar']}>
+          <span className={styles['your-cart-brand']}>PalletsPlus</span>
+          <div className={styles['your-cart-links']}>
+            <Link href="/products" className={styles['your-cart-link']}>Products</Link>
+            <Link href={`/profile/${sessionStorage.getItem('userId')}`} className={styles['your-cart-link']}>Profile</Link>
+            <Link href="/cart" className={styles['your-cart-link-active']}>Your Cart</Link>
+            <img src="/mdicart4120-v5fc.svg" alt="Cart Icon" className={styles['your-cart-mdicart']} />
           </div>
-          <img
-            src="/line191640-a15m.svg"
-            alt="Line191640"
-            className={styles.yourCartLine19}
-          />
-          <img
-            src="/line211641-sul4.svg"
-            alt="Line211641"
-            className={styles.yourCartLine21}
-          />
-          <img
-            src="/line201642-bmrk.svg"
-            alt="Line201642"
-            className={styles.yourCartLine20}
-          />
-          <img
-            src="/line221643-7bse.svg"
-            alt="Line221643"
-            className={styles.yourCartLine22}
-          />
-          <span className={styles.yourCartText03}>
-            <span>Shopping Cart</span>
-          </span>
-          <span className={styles.yourCartText05}>
-            <span>Summary</span>
-          </span>
-          <span className={styles.yourCartText07}>
-            <span>
+        </div>
+        <div className={styles['your-cart-content']}>
+          <h2 className={styles['your-cart-title']}>Shopping Cart</h2>
+          <div className={styles['your-cart-header']}>
+            <span className={styles['your-cart-subtitle']}>Summary</span>
+            <div className={styles['your-cart-discount']}>
               Enter Discount Code:
-              <span
-                dangerouslySetInnerHTML={{
-                  __html: ' ',
-                }}
+              <input
+                type="text"
+                placeholder="Enter Code"
+                className={styles['your-cart-input']}
+                value={couponCode}
+                onChange={(e) => setCouponCode(e.target.value)}
               />
-            </span>
-          </span>
-          <div className={styles.yourCartFrame34}>
-            {cartItems.length > 0 ? (
-              cartItems.map((item, index) => (
-                <div key={index} className={styles.yourCartGroup30}>
-                  <span className={styles.yourCartText09}>
-                    <span>{item.name}</span>
-                  </span>
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className={styles.yourCartRectangle30}
-                  />
-                  <span className={styles.yourCartText11}>
-                    <span>{item.description}</span>
-                  </span>
-                  <span className={styles.yourCartText13}>
-                    <span>${item.price}</span>
-                  </span>
+              <button onClick={handleApplyCoupon} className={styles['your-cart-apply-button']}>
+                Apply
+              </button>
+            </div>
+          </div>
+          <div className={styles['your-cart-items']}>
+            {items.length > 0 ? (
+              items.map((item, index) => (
+                <div key={index} className={styles['your-cart-item']}>
+                  <img src={item.image} alt={item.name} className={styles['your-cart-item-image']} />
+                  <div className={styles['your-cart-item-details']}>
+                    <span className={styles['your-cart-item-name']}>{item.name}</span>
+                    <span className={styles['your-cart-item-description']}>{item.description}</span>
+                    <span className={styles['your-cart-item-price']}>${item.price}</span>
+                  </div>
+                  <div className={styles['your-cart-item-quantity-container']}>
+                    <button
+                      onClick={() => handleDecreaseQuantity(item.productId)}
+                      className={styles['quantity-button']}
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      value={item.quantity}
+                      min="1"
+                      readOnly
+                      className={styles['your-cart-item-quantity']}
+                    />
+                    <button
+                      onClick={() => handleIncreaseQuantity(item.productId)}
+                      className={styles['quantity-button']}
+                    >
+                      +
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (
-              <p>No items in cart.</p>
+              <span className={styles['your-cart-empty']}>Your cart is empty</span>
             )}
           </div>
-          <span className={styles.yourCartText27}>
-            <span>SUBTOTAL:</span>
-          </span>
-          <span className={styles.yourCartText29}>
-            <span>TOTAL:</span>
-          </span>
-          <span className={styles.yourCartText31}>
-            <span>SHIPPING:</span>
-          </span>
-          <span className={styles.yourCartText33}>
-            <span>TAXES:</span>
-          </span>
-          <span className={styles.yourCartText35}>
-            <span>${subtotal.toFixed(2)}</span>
-          </span>
-          <span className={styles.yourCartText37}>
-            <span>${(subtotal + 24.99).toFixed(2)}</span>
-          </span>
-          <span className={styles.yourCartText39}>
-            <span>$24.99</span>
-          </span>
-          <span className={styles.yourCartText41}>
-            <span>FREE</span>
-          </span>
-          <div className={styles.yourCartNavBar}>
-            <img
-              src="/line64119-an1p.svg"
-              alt="Line64119"
-              className={styles.yourCartLine6}
-            />
-            <Link href="/profile" legacyBehavior>
-              <a className={styles.yourCartLink}>Profile</a>
-            </Link>
-            <Link href="/products" legacyBehavior>
-              <a className={styles.yourCartLink1}>Products</a>
-            </Link>
-            <img
-              src="/line74119-hpuo.svg"
-              alt="Line74119"
-              className={styles.yourCartLine7}
-            />
-            <Link href="/cart" legacyBehavior>
-              <a className={styles.yourCartLink2}>Your Cart</a>
-            </Link>
-            <img
-              src="/mdicart4120-v8px.svg"
-              alt="mdicart4120"
-              className={styles.yourCartMdicart}
-            />
-            <span className={styles.yourCartText49}>
-              <span>PalletsPlus</span>
-            </span>
+          <div className={styles['your-cart-summary']}>
+            <div className={styles['your-cart-summary-item']}>
+              <span className={styles['your-cart-summary-label']}>SUBTOTAL:</span>
+              <span className={styles['your-cart-summary-value']}>
+                ${subtotal.toFixed(2)}
+              </span>
+            </div>
+            <div className={styles['your-cart-summary-item']}>
+              <span className={styles['your-cart-summary-label']}>DISCOUNT:</span>
+              <span className={styles['your-cart-summary-value']}>${discount.toFixed(2)}</span>
+            </div>
+            <div className={styles['your-cart-summary-item']}>
+              <span className={styles['your-cart-summary-label']}>SHIPPING:</span>
+              <span className={styles['your-cart-summary-value']}>FREE</span>
+            </div>
+
+            <div className={styles['your-cart-summary-item']}>
+              <span className={styles['your-cart-summary-label']}>TOTAL:</span>
+              <span className={styles['your-cart-summary-value']}>
+                ${total.toFixed(2)}
+              </span>
+            </div>
           </div>
-          <input
-            type="text"
-            placeholder="Enter Discount Code"
-            className={styles.yourCartTextinput}
-          />
-          <button type="button" className={styles.yourCartButton}>
-            <span className={styles.yourCartText51}>
-              <span>Check Out</span>
-              <Link href="/checkout" legacyBehavior>
-                <a> </a>
-              </Link>
-              <br />
-            </span>
-          </button>
+          <div className={styles['your-cart-actions']}>
+            <button className={styles['your-cart-checkout-button']} onClick={handleCheckout}>CHECK OUT</button>
+          </div>
         </div>
-        <button type="button" className={styles.yourCartButton1}>
-          <span className={styles.yourCartText54}>
-            <span>Cancel</span>
-            <br />
-          </span>
-        </button>
       </div>
     </>
   );
-}
+};
 
 export default YourCart;

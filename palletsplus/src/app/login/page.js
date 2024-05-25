@@ -38,7 +38,7 @@ const LoginPage = () => {
           sessionStorage.setItem('userId', data.user.id);
           console.log(data.user.id, "User ID set in session storage");
           localStorage.setItem('token', data.access_token);
-          router.push(`/profile/${data.user.id}`);
+          router.push(`/home`);
         } else {
           console.error('No userId found in server response');
           setMessage('Login successful, but no user ID found.');

@@ -130,7 +130,17 @@ export class ProductService implements OnModuleInit, OnModuleDestroy {
       },
     });
   }
-
+  async findByMaterial(material: string): Promise<Product[]> {
+    try {
+      const products = await this.productModel.find({ material }).exec();
+      if (!products || products.length === 0) {
+        throw new NotFoundException(`No products found with material: ${material}`);
+      }
+      return products;
+    } catch (error) {
+      throw new Error(`Failed to find products by material: ${error as Error}`);
+    }
+  }
   async sendProductDetailsToCart(productId: string) {
     const product = await this.productModel.findById(productId);
     if (!product) {

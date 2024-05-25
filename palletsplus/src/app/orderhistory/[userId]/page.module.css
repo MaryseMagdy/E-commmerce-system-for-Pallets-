@@ -1,0 +1,125 @@
+.containerBase {
+  background-image: url("/tq_az7ku4h-wq-asb8-1500w.png");
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+.container {
+  margin: 0 auto;
+  padding: 40px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.9);
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  width: 84%; /* Adjust the width to make the container bigger */
+}
+
+.navBar {
+  background: linear-gradient(180deg, rgba(0, 115, 251, 1) 19%, rgba(255, 255, 255, 1) 74%);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 101.4%;
+  padding: 1rem 2rem;
+  border-radius: 10px;
+  margin-bottom: -15px;
+}
+
+.navBrand {
+  font-weight: bold;
+  font-size: 32px;
+  color: #0073fb;
+}
+
+.navLinks {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.navText {
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 24px;
+  font-family: Poppins, sans-serif;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.profileContainer {
+  background-color: #fff;
+  padding: 40px;
+  border-radius: 10px;
+  width: 100%;
+}
+
+.profileText {
+  margin-top: 20px;
+  color: rgba(118, 118, 118, 1);
+  font-size: 42px;
+  text-align: center;
+  font-family: Poppins, sans-serif;
+  font-weight: 400;
+}
+
+.ordersList {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
+  width: 100%; /* Ensure the list takes up full width of the container */
+}
+
+.orderItem {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  padding: 20px;
+  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.itemNumber {
+  font-size: 24px;
+  font-weight: bold;
+  margin-right: 15px;
+  color: #0073fb;
+}
+
+.itemDetails {
+  display: flex;
+  flex-direction: column;
+  width: 100%; /* Ensure item details take up full width */
+}
+
+.profileLabel {
+  color: black;
+  font-size: 18px;
+  font-family: Poppins, sans-serif;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.profileValue {
+  color: rgba(0, 0, 0, 0.8);
+  font-size: 18px;
+  font-family: Poppins, sans-serif;
+  font-weight: 400;
+  margin-bottom: 10px;
+}
+
+.loading {
+  font-size: 24px;
+  color: rgba(0, 0, 0, 0.7);
+  text-align: center;
+}
+
+.noItems {
+  font-size: 24px;
+  color: rgba(0, 0, 0, 0.7);
+  text-align: center;
+}

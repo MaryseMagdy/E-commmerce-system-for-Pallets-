@@ -49,4 +49,32 @@ export class OrderController {
             });
         }
     }
+    @Get('history/:userId')
+async ViewPastOrders(@Param('userId') userId: string, @Res() res: Response) {
+    try {
+        if (!userId) {
+            console.error('Not a registered user');
+            return res.status(HttpStatus.BAD_REQUEST).json({
+                status: 'error',
+                message: 'Not a registered user'
+            });
+        }
+
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const orders = await this.orderService.ViewPastOrders(userId);
+        return res.json({
+            status: 'success',
+            data: orders,
+            message: 'Past orders fetched successfully'
+        });
+    } catch (error) {
+        console.error('Error fetching past orders:', error);
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+            status: 'error',
+            message: 'Failed to fetch past orders'
+        });
+    }
+}
 }

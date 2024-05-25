@@ -1,129 +1,256 @@
 'use client'
-import React, { useEffect, useState } from 'react'
-import Link from 'next/link'
-import Head from 'next/head'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
-import styles from './page.module.css'
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import Link from 'next/link';
+import Head from 'next/head';
+import { useRouter } from 'next/navigation';
 
 const HomePage = () => {
-    const [username, setUsername] = useState('')
-    const router = useRouter()
-
-    const fetchUsername = async (userId) => {
-        try {
-            const response = await fetch(`http://localhost:8001/user/${userId}`)
-            if (!response.ok) {
-                throw new Error('Network response was not ok')
-            }
-            const data = await response.json()
-            setUsername(data.username)
-        } catch (error) {
-            console.error('There was an error fetching the username!', error)
-        }
-    }
+    const [featuredProducts, setFeaturedProducts] = useState([]);
+    const [topOffers, setTopOffers] = useState([]);
+    const router = useRouter();
 
     useEffect(() => {
-        const userId = sessionStorage.getItem('userId')
+        const fetchProducts = async () => {
+            try {
+                const response = await axios.get('http://localhost:8000/product/');
+                const products = response.data;
+                const sortedProducts = products.sort((a, b) => b.rating - a.rating);
+                setFeaturedProducts(sortedProducts.slice(0, 2));
+                setTopOffers(products.filter(product => product.offers !== "0"));
+            } catch (error) {
+                console.error('Error fetching products:', error);
+            }
+        };
+
+        fetchProducts();
+    }, []);
+
+    const handleCategoryClick = (material) => {
+        localStorage.setItem('selectedMaterial', material);
+        router.push(`/products?material=${material}`);
+    };
+
+    const handleProfileClick = () => {
+        const userId = sessionStorage.getItem('userId');
         if (userId) {
-            fetchUsername(userId)
+            router.push(`/profile/${userId}`);
         } else {
-            console.error('No user ID found in session storage!')
-            router.push('/login') // Redirect to login page if no user ID is found
+            router.push('/login');
         }
-    }, [router])
+    };
 
     return (
         <>
-            <div className={styles['home-page-container']}>
+            <div className="home-page-container">
                 <Head>
-                    <title>exported project</title>
+                    <title>PalletsPlus</title>
                 </Head>
-                <div className={styles['home-page-home-page']}>
-                    <Image
-                        src="/rectangle19147-p9c-1200w.png"
-                        alt="Rectangle19147"
-                        width={1200}
-                        height={800}
-                        className={styles['home-page-rectangle19']}
-                    />
-                    <div className={styles['nav-bar']}>
-                        <Image
-                            src="/rectangle11150-86rg-200h.png"
-                            alt="Rectangle11150"
-                            width={200}
-                            height={100}
-                            className={styles['rectangle1']}
-                        />
-                        <Image
-                            src="/line6372-ujr.svg"
-                            alt="Line6372"
-                            width={200}
-                            height={10}
-                            className={styles['line6']}
-                        />
-                        <button className={styles['text']} onClick={() => router.push('/profile')}>
-                            Profile
-                        </button>
-                        <button className={styles['text02']} onClick={() => router.push('/products')}>
-                            Products
-                        </button>
-                        <Image
-                            src="/line73713-7v1i.svg"
-                            alt="Line73713"
-                            width={200}
-                            height={10}
-                            className={styles['line7']}
-                        />
-                        <button className={styles['text04']} onClick={() => router.push('/cart')}>
-                            Your Cart
-                        </button>
-                        <Image
-                            src="/mdicart377-2y6m.svg"
-                            alt="mdicart377"
-                            width={50}
-                            height={50}
-                            className={styles['mdicart']}
-                        />
-                        <button className={styles['text05']} onClick={() => router.push('/wishlist')}>
-                            Wishlist
-                        </button>
-                        <span className={styles['text06']} onClick={() => router.push('/homehezar')}>
-                            <span>PalletsPlus</span>
-                        </span>
+                <div className="home-page-nav-bar">
+                    <span className="home-page-brand">PalletsPlus</span>
+                    <div className="home-page-links">
+                        <Link href="/products" legacyBehavior>
+                            <a className="home-page-link">Products</a>
+                        </Link>
+                        <a className="home-page-link" onClick={handleProfileClick}>Profile</a>
+                        <Link href="/cart" legacyBehavior>
+                            <a className="home-page-link">Your Cart</a>
+                        </Link>
+                        <Link href="/login" legacyBehavior>
+                            <a className="home-page-link">Login</a>
+                        </Link>
+                        <Link href="/wishlist" legacyBehavior>
+                            <a className="home-page-link">Wishlist</a>
+                        </Link>
                     </div>
-                    <Image
-                        src="/rectangle18132-jga.svg"
-                        alt="Rectangle18132"
-                        width={800}
-                        height={400}
-                        className={styles['home-page-rectangle18']}
-                    />
-                    <span className={styles['home-page-text08']}>
-                        <span>
-                            Discover the ultimate destination for all your plastic pallet
-                            needs. At PalletsPlus, we specialize in providing high-quality
-                            plastic pallets tailored to meet your specific requirements.
-                            Whether you're looking for durable pallets for storage,
-                            transportation, or logistics, we have you covered.
-                        </span>
-                    </span>
-                    <Image
-                        src="/rectangle271242-yqxa-800h.png"
-                        alt="Rectangle271242"
-                        width={800}
-                        height={400}
-                        className={styles['home-page-rectangle27']}
-                    />
-                    <span className={styles['home-page-text10']}>
-                        <span>Welcome {username},</span>
-                        <br />
-                        <span>to PalletsPlus</span>
-                    </span>
+                </div>
+                <div className="home-page-content">
+                    <h2 className="home-page-section-title">Top Offers</h2>
+                    <div className="home-page-top-offers">
+                        {topOffers.map((product) => (
+                            <Link href={`/product/${product._id}`} key={product._id} passHref>
+                                <div className="home-page-offer">
+                                    <img
+                                        src={product.image}
+                                        alt={product.name}
+                                        className="home-page-offer-image"
+                                    />
+                                    <span className="home-page-offer-name">{product.offers}</span>
+                                    <span className="home-page-offer-validity">Valid until: {product.validity || '30/5/2024'}</span>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                    <h2 className="home-page-section-title">Featured Products</h2>
+                    <div className="home-page-featured-products">
+                        {featuredProducts.map((product) => (
+                            <Link href={`/product/${product._id}`} key={product._id} passHref>
+                                <div className="home-page-product">
+                                    <img
+                                        src={product.image}
+                                        alt={product.name}
+                                        className="home-page-product-image"
+                                    />
+                                    <span className="home-page-product-name">{product.name}</span>
+                                    <span className="home-page-product-price">${product.price.toFixed(2)}</span>
+                                    <span className="home-page-product-rating">Rating: {product.rating}</span>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                    <h2 className="home-page-section-title">Categories</h2>
+                    <div className="home-page-categories">
+                        <button className="home-page-category" onClick={() => handleCategoryClick('wood')}>
+                            <span>Wood Pallets</span>
+                        </button>
+                        <button className="home-page-category" onClick={() => handleCategoryClick('plastic')}>
+                            <span>Plastic Pallets</span>
+                        </button>
+                    </div>
                 </div>
             </div>
+            <style jsx>
+                {`
+                    .home-page-container {
+                        width: 100%;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        background-color: #FBFAF9;
+                        min-height: 100vh;
+                        padding: 48px;
+                        background-image: url('/se-wall.png');
+                        background-size: cover;
+                        background-position: center;
+                        background-repeat: no-repeat;
+                    }
+                    .home-page-nav-bar {
+                        width: 100%;
+                        max-width: 1400px;
+                        display: flex;
+                        justify-content: space-between;
+                        align-items: center;
+                        padding: 24px;
+                        background: linear-gradient(180deg, rgba(0, 115, 251, 1) 19%, rgba(255, 255, 255, 1) 74%);
+                        border-radius: 8px;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                        margin-bottom: -14px;
+                    }
+                    .home-page-brand {
+                        font-size: 44px;
+                        font-weight: bold;
+                        color: #0073fb;
+                        font-family: 'Poppins', sans-serif;
+                    }
+                    .home-page-links {
+                        display: flex;
+                        gap: 32px;
+                    }
+                    .home-page-link {
+                        color: rgba(0, 0, 0, 0.7);
+                        font-size: 16px;
+                        text-decoration: none;
+                        font-family: 'Poppins', sans-serif;
+                        cursor: pointer;
+                    }
+                    .home-page-content {
+                        width: 100%;
+                        max-width: 1400px;
+                        background: white;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+                        padding: 32px;
+                        text-align: center;
+                    }
+                    .home-page-section-title {
+                        font-size: 64px;
+                        color: #923A06;
+                        margin-bottom: 16px;
+                        font-family: 'Poppins', sans-serif;
+                    }
+                    .home-page-featured-products,
+                    .home-page-top-offers {
+                        display: flex;
+                        justify-content: center;
+                        gap: 32px;
+                        margin-bottom: 64px;
+                    }
+                    .home-page-product,
+                    .home-page-offer {
+                        width: 200px;
+                        text-align: center;
+                        background: white;
+                        padding: 16px;
+                        border-radius: 8px;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    }
+                    .home-page-product-image,
+                    .home-page-offer-image {
+                        width: 100%;
+                        height: 150px;
+                        object-fit: cover;
+                        border-radius: 8px;
+                        margin-bottom: 8px;
+                    }
+                    .home-page-product-name,
+                    .home-page-offer-name,
+                    .home-page-product-price,
+                    .home-page-product-rating,
+                    .home-page-offer-validity {
+                        display: block; /* Forces each item to be on a new line */
+                        font-family: 'Poppins', sans-serif;
+                    }
+                    .home-page-product-name,
+                    .home-page-offer-name {
+                        font-size: 16px;
+                        color: #191818;
+                    }
+                    .home-page-product-price {
+                        font-size: 14px;
+                        color: #0073fb;
+                        margin-top: 4px;
+                    }
+                    .home-page-product-rating {
+                        font-size: 14px;
+                        color: #ff9900;
+                        margin-top: 4px;
+                    }
+                    .home-page-offer-validity {
+                        font-size: 14px;
+                        color: #ff9900;
+                        margin-top: 4px;
+                    }
+                    .home-page-categories {
+                        display: flex;
+                        justify-content: center;
+                        gap: 64px;
+                        
+                    }
+                    .home-page-category-link {
+                        text-decoration: none;
+                        color: inherit;
+                    }
+                    .home-page-category {
+                        display: flex;
+                        font-size: 40px;
+                        flex-direction: column;
+                        align-items: center;
+                        background: white;
+                        padding: 16px;
+                        border-radius: 100px;
+                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                        border: none;
+                        cursor: pointer;
+                        transition: background-color 0.3s ease, color 0.3s ease;
+                    }
+                    .home-page-category:hover {
+                        background-color: #D8BFAF;
+                            color: #D1510A;
+                    }
+                `}
+            </style>
         </>
-    )
-}
+    );
+};
 
-export default HomePage
+export default HomePage;

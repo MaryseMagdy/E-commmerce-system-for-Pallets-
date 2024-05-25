@@ -53,7 +53,18 @@ async getProductById(@Param('id') id: string) {
           return { success: false, message: (error as Error).message };
       }
   } 
-
+  @Get('/material/:material')
+  async getProductsByMaterial(@Param('material') material: string): Promise<Product[]> {
+    try {
+      const products = await this.ProductService.findByMaterial(material);
+      if (!products || products.length === 0) {
+        throw new NotFoundException(`No products found with material: ${material}`);
+      }
+      return products;
+    } catch (error) {
+      throw new NotFoundException('Failed to fetch products: ' + (error as Error).message);
+    }
+  }
   @Post('rent/:productId')
   async rentOrder(
     @Param('productId') productId: string,

@@ -120,6 +120,25 @@ export class OrderService implements OnModuleInit, OnModuleDestroy {
             throw new Error('Failed to place order');
         }
     }
+    async ViewPastOrders(userId: string): Promise<any[]> {
+        try {
+            if (!userId) {
+                throw new Error('Not a registered user');
+            }
+    
+            // Find all orders for the user
+            const orders = await this.OrderModel.find({ userId: userId }).exec();
+    
+            // Extract items array from each order
+            const itemsArray = orders.map(order => order.items).flat();
+    
+            return itemsArray;
+            
+        } catch (error) {
+            console.error('Error fetching past orders', error);
+            throw error;
+        }
+    }
 
     async getOrders(userId: string): Promise<order[]> {
         try {

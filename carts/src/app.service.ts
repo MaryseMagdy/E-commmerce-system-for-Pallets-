@@ -33,8 +33,8 @@ export class CartService implements OnModuleInit, OnModuleDestroy {
           const data = JSON.parse(message.value.toString());
           if (topic === 'cart-product-response') {
             const { userId, productId, name, price, quantity } = data;
-            console.log(userId, productId, name, price, quantity)
-            console.log(data)
+            console.log("meee",userId, productId, name, price, quantity)
+            console.log("beeee",data)
             await this.addToCartHandler(new AddToCartDto(userId, productId, quantity, name, price));
           }
         } catch (error) {
@@ -55,6 +55,7 @@ export class CartService implements OnModuleInit, OnModuleDestroy {
     });
   }
 
+  
   private async addToCartHandler(addToCartDto: AddToCartDto) {
     const { userId, productId, quantity, name, price } = addToCartDto;
 
@@ -65,29 +66,48 @@ export class CartService implements OnModuleInit, OnModuleDestroy {
       name,
       price,
     });
-    console.log("cartItem",cartItem)
+
+    console.log('Cart item to be saved:', cartItem);
 
     await cartItem.save();
 
     await this.producer.send({
       topic: 'cart-to-user',
-      messages: [{ value: addToCartDto.toString() }],
+      messages: [{ value: JSON.stringify(addToCartDto) }],
     });
 
     return cartItem;
   }
 
   async addToCart(addToCartDto: AddToCartDto): Promise<any> {
+    console.log('Requesting product details for:', addToCartDto);
     await this.requestProductDetails(addToCartDto.productId, addToCartDto.userId, addToCartDto.quantity);
+    return { success: true, message: 'Add to cart request sent successfully' };
   }
 
   async getUserCart(userId: string): Promise<Cart[]> {
     try {
       const userCartItems = await this.cartModel.find({ userId }).exec();
+      console.log(`User cart items: ${JSON.stringify(userCartItems)}`);
+
+      const sendToOrder = {
+        topic: 'cart-data',
+        messages: [{
+          value: JSON.stringify({
+            userId,
+            cartItems: userCartItems,
+          }),
+        }],
+      };
+
+      await this.producer.send(sendToOrder);
+
+      console.log(`Produced message for user ${userId} with cart items: ${JSON.stringify(userCartItems)} to cart topic`);
       return userCartItems;
+
     } catch (error) {
-      console.error('Error getting user cart:', error);
-      throw new InternalServerErrorException('Server error');
+      console.error("Error getting user cart:", error);
+      throw new InternalServerErrorException("Server error");
     }
   }
 }

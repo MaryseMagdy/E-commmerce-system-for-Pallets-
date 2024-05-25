@@ -1,10 +1,12 @@
-// src/app/product/[productId]/ProductDetail.js
 'use client';
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './ProductDetail.module.css';
 import CustomizeProduct from './CustomizeProduct';
 import ShareModal from './ShareModal';
+import AddToFavoritesPopup from './AddToFavouritePopUp';
+import { toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const ProductDetail = ({ productId }) => {
     const [product, setProduct] = useState(null);
@@ -12,20 +14,19 @@ const ProductDetail = ({ productId }) => {
     const [showCustomizeForm, setShowCustomizeForm] = useState(false);
     const [refresh, setRefresh] = useState(false);
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [isPopupOpen, setIsPopupOpen] = useState(false);
+
     const router = useRouter();
-    localStorage.setItem('productId', productId);
 
     const fetchProduct = async () => {
         try {
-            // Fetch product details from backend API
             const response = await fetch(`http://localhost:8000/product/${productId}`);
             if (!response.ok) {
                 throw new Error('Failed to fetch product');
             }
             const data = await response.json();
-            sessionStorage.setItem('productId', data._id)
-            console.log(data._id, "1")
-            console.log("Product data fetched:", data); // Log the fetched data for debugging
+            sessionStorage.setItem('productId', data._id);
+            console.log("Product data fetched:", data);
             setProduct(data);
         } catch (error) {
             console.error('Error fetching product:', error);
@@ -34,10 +35,10 @@ const ProductDetail = ({ productId }) => {
 
     useEffect(() => {
         if (productId) {
-            console.log("Fetching product with ID:", productId); // Log the product ID for debugging
+            console.log("Fetching product with ID:", productId);
             fetchProduct();
         }
-    }, [productId, refresh]); // Add refresh to the dependency array
+    }, [productId, refresh]);
 
     if (!product) {
         return <div>Loading...</div>;
@@ -61,18 +62,63 @@ const ProductDetail = ({ productId }) => {
 
     const handleCloseCustomizeForm = () => {
         setShowCustomizeForm(false);
-        setRefresh((prev) => !prev); // Trigger a refresh
+        setRefresh((prev) => !prev);
     };
 
     const handleShareClick = () => {
-        setIsShareModalOpen(true); // Open ShareModal
+        setIsShareModalOpen(true);
     };
 
     const handleCloseShareModal = () => {
-        setIsShareModalOpen(false); // Close ShareModal
+        setIsShareModalOpen(false);
     };
+
     const handleReviewsClick = () => {
         router.push(`/review/${productId}`);
+    };
+    const handleAddToCart = async () => {
+        const userId = sessionStorage.getItem('userId');
+        if (!userId) {
+            console.error('User ID is not defined');
+            return;
+        }
+
+        const addToCartDto = {
+            userId,
+            productId: product._id,
+            name: product.name,
+            price: product.price,
+            quantity: 1, // Default quantity can be 1, you can change as per your requirement
+        };
+        try {
+            const response = await fetch('http://localhost:8004/carts/add', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(addToCartDto),
+            });
+            console.log("meee", addToCartDto)
+
+            if (!response.ok) {
+                throw new Error('Failed to add item to cart');
+            }
+
+            const result = await response.json();
+            console.log('Item added to cart:', result);
+
+            if (result.success) {
+                toast.success('Item added to cart successfully!');
+            } else {
+                toast.error(result.message || 'Failed to add item to cart.');
+            }
+        } catch (error) {
+            console.error('Error adding item to cart:', error);
+            toast.error('An error occurred while adding item to cart.');
+        }
+    };
+    const handleAddToFavoriteClick = () => {
+        setIsPopupOpen(true);
     };
 
     return (
@@ -86,7 +132,7 @@ const ProductDetail = ({ productId }) => {
                             <a href="/home" className={styles.navBrand}>PalletsPlus</a>
                             <div className={styles.navLinks}>
                                 <a href="/products" className={styles.navText}>Products</a>
-                                <a href="/profile" className={styles.navText}>Profile</a>
+                                <a href={`/profile/${sessionStorage.getItem('userId)')}`} className={styles.navText}>Profile</a>
                                 <a href="/cart" className={styles.navText}>Your Cart</a>
                             </div>
                         </div>
@@ -98,6 +144,9 @@ const ProductDetail = ({ productId }) => {
                                     <div className={styles.descriptionHeader}>
                                         <h3 className={styles.sectionTitle}>Description</h3>
                                         <button className={styles.shareButton} onClick={handleReviewsClick}>Reviews</button>
+                                        <button className={styles.shareButton} onClick={handleAddToFavoriteClick}>
+                                            Add to Favorites
+                                        </button>
                                         <button className={styles.shareButton} onClick={handleShareClick}>Share</button>
                                     </div>
                                     <p className={styles.productDescription}>{product.description}</p>
@@ -134,17 +183,22 @@ const ProductDetail = ({ productId }) => {
                                 <div className={styles.actionButtons}>
                                     <button className={styles.button} onClick={handleCustomizeClick}>Customize</button>
                                     <button className={styles.button} onClick={handleRentClick}>Rent</button>
-                                    <button className={styles.button}>Add To Cart</button>
+                                    <button className={styles.button} onClick={handleAddToCart}>Add To Cart</button>
                                     <button className={styles.buttonCancel} onClick={handleCancelClick}>Cancel</button>
                                 </div>
                             </div>
                         </div>
                     </>
-                )
-                }
-            </div >
-            <ShareModal isOpen={isShareModalOpen} onClose={handleCloseShareModal} currentUrl={window.location.href} /> {/* Render ShareModal */}
-        </div >
+                )}
+            </div>
+            <ShareModal isOpen={isShareModalOpen} onClose={handleCloseShareModal} currentUrl={window.location.href} />
+            <AddToFavoritesPopup
+                isOpen={isPopupOpen}
+                onClose={() => setIsPopupOpen(false)}
+                productId={productId}
+            />
+        </div>
+
     );
 };
 

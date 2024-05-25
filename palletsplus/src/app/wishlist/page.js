@@ -43,6 +43,27 @@ const Wishlist = () => {
     }
   }
 
+  const addToCart = async (userId, productId) => {
+    try {
+      const response = await fetch('http://localhost:8004/carts/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userId, productId })
+      })
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
+      const result = await response.json()
+      if (result.success) {
+        removeFromWishlist(userId, productId)
+      }
+    } catch (error) {
+      console.error('There was an error adding the item to the cart!', error)
+    }
+  }
+
   useEffect(() => {
     const userId = sessionStorage.getItem('userId')
     if (userId) {
@@ -84,7 +105,7 @@ const Wishlist = () => {
                     <h3>{item.name}</h3>
                     <p>{item.description}</p>
                     <p>${item.price}</p>
-                    <button className="buttonAction">Add to Cart</button>
+                    <button className="buttonAction" onClick={() => addToCart(sessionStorage.getItem('userId'), item._id)}>Add to Cart</button>
                     <button
                       className="buttonDelete"
                       onClick={() => removeFromWishlist(sessionStorage.getItem('userId'), item._id)}

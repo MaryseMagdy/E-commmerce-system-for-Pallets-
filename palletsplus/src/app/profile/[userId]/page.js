@@ -29,11 +29,45 @@ const EditFieldModal = ({ showModal, field, value, handleClose, handleSave }) =>
   );
 };
 
+const ChangePasswordModal = ({ showModal, handleClose, handleChangePassword }) => {
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+
+  if (!showModal) return null;
+
+  const handleSubmit = () => {
+    handleChangePassword(currentPassword, newPassword);
+  };
+
+  return (
+    <div className={styles.modal}>
+      <div className={styles.modalContent}>
+        <span className={styles.close} onClick={handleClose}>&times;</span>
+        <h2>Change Password</h2>
+        <input
+          type="password"
+          placeholder="Current Password"
+          value={currentPassword}
+          onChange={(e) => setCurrentPassword(e.target.value)}
+        />
+        <input
+          type="password"
+          placeholder="New Password"
+          value={newPassword}
+          onChange={(e) => setNewPassword(e.target.value)}
+        />
+        <button className={styles.buttonChange} onClick={handleSubmit}>Change Password</button>
+      </div>
+    </div>
+  );
+};
+
 const Profile = () => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [currentField, setCurrentField] = useState('');
   const [currentValue, setCurrentValue] = useState('');
   const router = useRouter();
@@ -147,6 +181,36 @@ const Profile = () => {
     setShowModal(false);
   };
 
+  const handleChangePassword = async (currentPassword, newPassword) => {
+    const userId = sessionStorage.getItem('userId');
+    if (!userId) {
+      setMessage('No user ID found in session storage');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8001/user/changePassword/${userId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        setMessage('Password changed successfully');
+      } else {
+        setMessage(result.message);
+      }
+    } catch (error) {
+      console.error('Error changing password:', error);
+      setMessage('Error changing password');
+    }
+
+    setShowPasswordModal(false);
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -194,23 +258,31 @@ const Profile = () => {
               {message && <p className={styles.profileMessage}>{message}</p>}
               <div className={styles.profileButtons}>
                 <button className={styles.buttonAction} onClick={() => router.push('/favourites')}>Favourites</button>
-                <button className={styles.buttonAction} onClick={() => router.push('/order-history')}>Order History</button>
+                <button className={styles.buttonAction} onClick={() => router.push(`orderhistory/${sessionStorage.getItem('userId')}`)}>Order History</button>
                 <button className={styles.buttonAction} onClick={() => router.push('/manage-payment')}>Manage Payment</button>
                 <button className={styles.buttonAction} onClick={() => router.push('/saved-addresses')}>Saved Addresses</button>
                 <button className={styles.buttonAction} onClick={() => router.push('/reviews')}>Reviews</button>
                 <button className={styles.buttonAction} onClick={() => router.push('/wishlist')}>Wishlist</button>
               </div>
-              <button className={styles.buttonLogout} onClick={handleLogout}>Logout</button>
+              <div className={styles.logoutChangePassword}>
+                <button className={styles.buttonChangePassword} onClick={() => setShowPasswordModal(true)}>Change Password</button>
+                <button className={styles.buttonLogout} onClick={handleLogout}>Logout</button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </div >
       <EditFieldModal
         showModal={showModal}
         field={currentField}
         value={currentValue}
         handleClose={handleCloseModal}
         handleSave={handleSave}
+      />
+      <ChangePasswordModal
+        showModal={showPasswordModal}
+        handleClose={() => setShowPasswordModal(false)}
+        handleChangePassword={handleChangePassword}
       />
     </>
   );

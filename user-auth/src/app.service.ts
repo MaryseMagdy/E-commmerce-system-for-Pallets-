@@ -40,15 +40,18 @@ export class userAuthService {
   async onModuleInit() {
     await this.producer.connect();
     await this.consumer.connect();
+    await this.subscribeToTopics();
+    this.startConsumer();
+  }
+    private async subscribeToTopics() {
+
     await this.consumer.subscribe({ topic: 'product-details-response' });
     await this.consumer.subscribe({ topic: 'add-to-favourites-response' });
     await this.consumer.subscribe({ topic: 'card-details' });
     await this.consumer.subscribe({ topic: 'order-placed' });
     await this.consumer.subscribe({ topic: 'cart-to-user' });
 
-
-    this.startConsumer();
-  }
+    }
 
   async onModuleDestroy() {
     await this.producer.disconnect();
@@ -157,26 +160,27 @@ export class userAuthService {
     }
 }
 
-  private async addCardToUser(userId: string, cardDetails: Card) {
-    try {
-      const user = await this.userAuthModel.findById(userId);
-      if (!user) {
-        console.log('User not found');
-        return;
-      }
-
-      if (!user.cards) {
-        user.cards = [];
-      }
-
-      user.cards.push(cardDetails);
-      await user.save();
-
-      console.log('Card added to user successfully');
-    } catch (error) {
-      console.error('Error adding card to user:', error);
+  
+private async addCardToUser(userId: string, cardDetails: Card) {
+  try {
+    const user = await this.userAuthModel.findById(userId);
+    if (!user) {
+      console.log('User not found');
+      return;
     }
+
+    if (!user.cards) {
+      user.cards = [];
+    }
+
+    user.cards.push(cardDetails);
+    await user.save();
+
+    console.log('Card added to user successfully');
+  } catch (error) {
+    console.error('Error adding card to user:', error);
   }
+}
 
   async addCard(userId: string, cardDetails: Card) {
     try {
@@ -243,17 +247,19 @@ export class userAuthService {
 async addToFavouritesConsumer(productDetails: any) {
     try {
       const userId = productDetails.userId;
+      console.log("productDetails", productDetails);
+      console.log("userId", userId);
       const user = await this.userAuthModel.findById(userId);
       if (!user) {
         console.log('User not found');
         return;
       }
   
-      if (user.favourite.some(product => product && product._id && product._id.toString() === productDetails._id.toString())) {
-        console.log('Product already in favourites');
-        return;
-      }
-  
+      // if (user.favourite.some(product => product && product._id && product._id.toString() === productDetails._id.toString())) {
+      //   console.log('Product already in favourites');
+      //   return;
+      // }
+      
       user.favourite.push(productDetails);
       await user.save();
   
@@ -315,6 +321,7 @@ async addToFavouritesConsumer(productDetails: any) {
       return { success: false, message: (error as Error).message };
     }
   }
+
   async addToFavourites(addToFavouritesDTO: addToFavouritesDTO): Promise<any> {
     const { userId, productId } = addToFavouritesDTO;
   

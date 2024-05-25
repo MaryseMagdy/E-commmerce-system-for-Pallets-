@@ -1,5 +1,6 @@
 'use client';
 import React, { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Head from 'next/head';
 import Link from 'next/link';
 import { ToastContainer, toast } from 'react-toastify';
@@ -12,11 +13,16 @@ const Products = () => {
     const [products, setProducts] = useState([]);
     const [wishlist, setWishlist] = useState([]);
     const [searchQuery, setSearchQuery] = useState('');
-
+    const searchParams = useSearchParams();
+    const material = searchParams.get('material');
 
     const fetchProducts = async () => {
         try {
-            const response = await fetch('http://localhost:8000/product/');
+            let url = 'http://localhost:8000/product/';
+            if (material) {
+                url += `material/${material}`;
+            }
+            const response = await fetch(url);
             if (!response.ok) {
                 throw new Error('Failed to fetch products');
             }
@@ -51,10 +57,9 @@ const Products = () => {
     useEffect(() => {
         fetchProducts();
         fetchWishlist();
-    }, []);
+    }, [material]);
 
     useEffect(() => {
-        const userId = sessionStorage.getItem('userId');
         const searchProducts = async () => {
             if (searchQuery.length < 1) {
                 fetchProducts();
@@ -110,7 +115,7 @@ const Products = () => {
             const data = await response.json();
             if (data.success) {
                 toast.success(`Product ${isInWishlist ? 'removed from' : 'added to'} wishlist`);
-                window.location.reload(); // Refresh the page
+                fetchWishlist(); // Refresh the wishlist without reloading the page
             } else {
                 toast.error(data.message);
             }
@@ -119,6 +124,7 @@ const Products = () => {
             toast.error(`Error ${isInWishlist ? 'removing' : 'adding'} product to wishlist`);
         }
     }
+
     const isProductInWishlist = (productId) => {
         return wishlist.some(product => product._id === productId);
     };
