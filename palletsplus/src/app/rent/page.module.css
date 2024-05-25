@@ -1,0 +1,186 @@
+/* page.module.css */
+
+.background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/tq_az7ku4h-wq-asb8-1500w.png'); /* Ensure this path is correct */
+    background-size: cover;
+    background-position: center;
+    z-index: -1;
+}
+
+.containerBase {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem;
+    min-height: 100vh;
+}
+
+.container {
+    position: relative;
+    z-index: 1;
+    background-color: white;
+    padding: 40px 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(44, 9, 9, 0.1);
+    width: 90%;
+    max-width: 1200px;
+    margin-top: 1rem; /* Adjusted to bring the container up */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.navBar {
+    background: linear-gradient(180deg, rgba(0, 115, 251, 1) 19%, rgba(255, 255, 255, 1) 74%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 98%;
+    /* max-width: 1200px; */
+    padding: 1rem 2rem;
+    border-radius: 10px;
+    margin-bottom: 0px;
+    margin-top: -5%;
+}
+
+.navBrand {
+    font-weight: bold;
+    font-size: 32px;
+    color: #0073fb;
+}
+
+.navLinks {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.navText {
+    color: rgba(0, 0, 0, 0.7);
+    font-size: 24px;
+    font-family: Poppins, sans-serif;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.heading {
+    font-size: 48px;
+    color: #0073fb;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 96%;
+    /* max-width: 1200px; */
+    gap: 40px;
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 10px;
+}
+
+.productInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* Changed to move the image to the left */
+    width: 50%; /* Adjusted to give more space to the product info */
+}
+
+.productImage {
+    width: 100%;
+    max-width: 300px; /* Adjusted the max-width of the image */
+    height: auto;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+}
+
+.productName {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0073fb;
+    text-align: center;
+}
+.datePickerContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 50%; /* Adjusted to align with the product info width */
+}
+
+.dateInputWrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.dateLabel {
+    font-size: 24px;
+    font-weight: bold;
+    color: #0073fb;
+    margin-bottom: 10px;
+}
+
+.dateInput {
+    padding: 15px;
+    font-size: 20px;
+    border: 2px solid #0073fb;
+    border-radius: 5px;
+    margin-top: 10px;
+    background-color: #f9f9f9;
+    color: #333;
+    width: 100%;
+}
+
+.largeDateInput {
+    font-size: 24px; /* Increased font size for the date input */
+}
+
+.dateInput::placeholder {
+    color: #888;
+}
+
+.buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    width: 100%;
+}
+
+.cancelButton, .orderButton {
+    padding: 15px 30px;
+    font-size: 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 2px solid #0073fb;
+    background-color: #fff;
+    color: #0073fb;
+    transition: background-color 0.3s ease;
+    flex: 1;
+}
+
+.cancelButton {
+    border-color: #e63946;
+    color: #e63946;
+}
+
+.cancelButton:hover {
+    background-color: #e63946;
+    color: #fff;
+}
+
+.orderButton {
+    background-color: #0073fb;
+    color: #fff;
+}
+
+.orderButton:hover {
+    background-color: #0056b3;
+}

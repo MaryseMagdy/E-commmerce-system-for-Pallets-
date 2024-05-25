@@ -6,16 +6,19 @@
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "target": "ES2021",
+    "target": "es2021", // Changed to lowercase "es2021"
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
     "incremental": true,
     "skipLibCheck": true,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false
-  }
+    "strict": true, // Enable strict mode for better type checking
+    "strictNullChecks": true, // Enable strict null checks for safer code
+    "noImplicitAny": false, // You might consider enabling this for stricter type checking
+    "strictBindCallApply": true, // Enable strict bind, call, and apply checks
+    "forceConsistentCasingInFileNames": true, // Ensure consistent casing in filenames
+    "noFallthroughCasesInSwitch": true // Detect fallthrough cases in switch statements
+  },
+  "include": ["src/**/*", "test/main.ts"],
+  "exclude": ["node_modules", "dist"]
 }

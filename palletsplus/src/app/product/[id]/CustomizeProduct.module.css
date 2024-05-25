@@ -1,0 +1,167 @@
+/* customizeProduct.module.css */
+
+.customizeContainer {
+    margin: 0 auto;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.navBarContainer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+}
+
+.navBar {
+    background: linear-gradient(180deg, rgba(0, 115, 251, 1) 19%, rgba(255, 255, 255, 1) 74%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    /* max-width: 1200px; */
+    padding: 1rem 2rem;
+    border-radius: 10px;
+}
+
+.navBrand {
+    font-weight: bold;
+    font-size: 32px;
+    color: #0073fb;
+}
+
+.navLinks {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.navText {
+    color: rgba(0, 0, 0, 0.7);
+    font-size: 24px;
+    font-family: Poppins, sans-serif;
+    font-weight: bold;
+    text-decoration: none;
+}
+.customizeTitleContainer{
+    display: flex;
+    justify-content: center;
+    margin-bottom: -1%;
+    margin-top:-4.3%;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    /* max-width: 1200px; */
+    gap: 40px;
+    background-color: white;
+
+}
+.customizeTitle {
+    font-size: 48px;
+    color: #0073fb;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.customizeContent {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    max-width: 1200px;
+    gap: 40px;
+    background-color: #fff;
+    padding: 40px;
+    border-radius: 10px;
+    /* box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); */
+}
+
+.customizeForm {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    width: 100%;
+}
+
+.customizeFields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 30px;
+}
+
+.customizeFields label {
+    flex: 1 1 calc(50% - 30px);
+    display: flex;
+    flex-direction: column;
+    font-size: 20px;
+    color: #333;
+}
+
+.customizeFields input,
+.customizeFields select {
+    padding: 15px;
+    font-size: 20px;
+    border: 2px solid #0073fb;
+    border-radius: 5px;
+    margin-top: 10px;
+    background-color: #f9f9f9;
+    color: #333;
+}
+
+.customizeFields input::placeholder {
+    color: #888;
+}
+
+.customizeButtons {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.button,
+.buttonCancel {
+    padding: 15px 30px;
+    font-size: 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    border: 2px solid #0073fb;
+    background-color: #fff;
+    color: #0073fb;
+    transition: background-color 0.3s ease;
+    flex: 1;
+}
+
+.buttonCancel {
+    border-color: #e63946;
+    color: #e63946;
+}
+
+.button:hover {
+    background-color: #0073fb;
+    color: #fff;
+}
+
+.buttonCancel:hover {
+    background-color: #e63946;
+    color: #fff;
+}
+
+.productImageContainer {
+    max-width: 45%;
+    text-align: center;
+}
+
+.productImage {
+    width: 100%;
+    height: auto;
+    border-radius: 10px;
+    margin-bottom: 10px;
+}
+
+.productName {
+    font-size: 24px;
+    color: #0073fb;
+    text-align: center;
+}
+    

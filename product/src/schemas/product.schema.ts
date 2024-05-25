@@ -3,7 +3,7 @@ import mongoose, { Schema } from 'mongoose';
 const productSchema: Schema = new Schema({
   image: {
     type: String,
-    required: true
+    required: false
   },
   name: {
     type: String,
@@ -12,6 +12,15 @@ const productSchema: Schema = new Schema({
   price: {
     type: Number,
     required: true
+  },
+  dailyRate: {
+    type: Number,
+    required: false
+  },
+  deposit: {
+    type: Number,
+    required: false,
+    default: 50
   },
   rating: {
     type: Number,
@@ -33,7 +42,11 @@ const productSchema: Schema = new Schema({
     type: String,
     required: true
   },
-  size: {
+  width: {
+    type: Number,
+    required: true
+  },
+  height:{
     type: Number,
     required: true
   },
@@ -41,12 +54,54 @@ const productSchema: Schema = new Schema({
     type: Boolean,
     required: true
   },
-  id: {
-    type: String,
-    required: true
-  },
   ratings: {
     type: [Number],
+    default: [],
+    validate: {
+      validator: function (v: number[]) {
+        return Array.isArray(v);
+      },
+      message: props => `${props.value} is not a valid array of numbers!`
+    }
+  },
+  rentStartDate:{
+    type: Date,
+    required: false,
+  },
+  rentEndDate:{
+    type: Date,
+    required: false,
+  },
+  totalRentalPrice: {
+    type: Number,
+    required: false
+  },
+  offers:{
+    type: String,
+    required: false,
+    default:"0"
+  },
+  reviews: {
+    type: [
+      {
+        userId: {
+          type: mongoose.Types.ObjectId,
+          required: true
+        },
+        rating: {
+          type: Number,
+          required: true
+        },
+        content: {
+          type: String,
+          required: true
+        },
+        productId: {
+          type: mongoose.Types.ObjectId,
+          required: true
+        }
+      }
+    ],
     default: []
   }
 });
